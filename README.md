@@ -26,6 +26,7 @@ linkpost-ai/
 │   ├── routers/    auth_linkedin.py, briefs.py, posts.py
 │   ├── services/   linkedin_client.py, content_generator.py
 │   └── tasks/      celery_app.py, publish_tasks.py, generation_tasks.py
+├── frontend/                     # React (Vite) — mesa editorial, deploy na Vercel
 ├── tests/
 └── docker-compose.yml / Dockerfile / requirements.txt / .env.example
 ```
@@ -59,6 +60,18 @@ linkpost-ai/
 6. `POST /briefs` com o tema -> revisar drafts em `GET /posts?status=draft` ->
    editar via `PATCH /posts/{id}` se quiser -> `POST /posts/{id}/approve` com
    `publish_at` (futuro, UTC). O beat publica sozinho.
+
+## Frontend (mesa editorial)
+
+```bash
+cd frontend
+cp .env.example .env          # VITE_API_URL = URL da API
+npm install && npm run dev    # http://localhost:5173
+```
+
+Deploy na Vercel: importar o repo, definir Root Directory = `frontend`,
+adicionar a env `VITE_API_URL` (URL da API no Railway) e, no backend,
+incluir a URL da Vercel em `FRONTEND_ORIGINS`.
 
 ## Testes
 

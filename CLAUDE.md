@@ -54,7 +54,7 @@ celery -A app.tasks.celery_app.celery beat -l info
 
 ## Roadmap
 - [ ] MVP single-user (você): OAuth + geração + aprovação + publish
-- [ ] Frontend React (Vercel): calendário editorial + fila de aprovação
+- [x] Frontend React (Vercel): calendário editorial + fila de aprovação (`frontend/`)
 - [ ] Posts com imagem (POST /rest/images, upload em 3 etapas, depois referenciar URN)
 - [ ] Billing (Stripe) + auth real (substituir X-API-Key em app/security.py)
 - [ ] w_organization_social (Company Pages) — requer review Marketing API (2-4 semanas)

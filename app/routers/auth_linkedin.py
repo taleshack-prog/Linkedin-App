@@ -65,5 +65,6 @@ def callback(code: str, state: str, db: Session = Depends(get_db)):
     account.status = "active"
     db.commit()
 
-    # Em produção: redirecionar para o frontend (Vercel) com ?connected=1
-    return RedirectResponse(url="/?linkedin=connected")
+    # Volta para o frontend (primeira origem configurada) com flag de sucesso
+    frontend = get_settings().FRONTEND_ORIGINS.split(",")[0].strip()
+    return RedirectResponse(url=f"{frontend}/?linkedin=connected")

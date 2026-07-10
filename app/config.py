@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str                                   # Fernet key (gerar: Fernet.generate_key())
     DATABASE_URL: str                                 # postgresql+psycopg://... (Railway)
     REDIS_URL: str = "redis://localhost:6379/0"       # broker/backend Celery (Railway Redis)
+    FRONTEND_ORIGINS: str = "http://localhost:5173"   # origens CORS, separadas por vírgula (add URL da Vercel)
 
     # LinkedIn OAuth (Developer Portal > sua app > Auth)
     LINKEDIN_CLIENT_ID: str

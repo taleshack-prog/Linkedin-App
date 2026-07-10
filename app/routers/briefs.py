@@ -1,4 +1,8 @@
+import uuid
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -8,6 +12,33 @@ from app.security import get_current_user
 from app.tasks.generation_tasks import generate_from_brief
 
 router = APIRouter(prefix="/briefs", tags=["briefs"])
+
+
+class BriefOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    theme: str
+    instructions: str | None
+    posts_per_week: int
+    language: str
+    status: str
+    error: str | None
+    created_at: datetime
+
+
+@router.get("", response_model=list[BriefOut])
+def list_briefs(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    return (
+        db.query(ContentBrief)
+        .filter_by(user_id=user.id)
+        .order_by(ContentBrief.created_at.desc())
+        .limit(100)
+        .all()
+    )
 
 
 @router.post("", status_code=202)
