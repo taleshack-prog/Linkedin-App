@@ -1,0 +1,59 @@
+"""Testes unitários das partes puras (sem rede, sem banco)."""
+import os
+from datetime import datetime, timedelta, timezone
+
+# Env mínimo ANTES de importar app.* (Settings valida no primeiro get_settings())
+os.environ.setdefault("SECRET_KEY", "x" * 43 + "=")  # placeholder; Fernet só é usado lazy
+os.environ.setdefault("DATABASE_URL", "sqlite://")
+os.environ.setdefault("LINKEDIN_CLIENT_ID", "test")
+os.environ.setdefault("LINKEDIN_CLIENT_SECRET", "test")
+os.environ.setdefault("ANTHROPIC_API_KEY", "test")
+
+import pytest
+from pydantic import ValidationError
+
+from app.schemas import PostApprove, PostUpdate
+from app.services.linkedin_client import escape_commentary
+
+
+class TestEscapeCommentary:
+    def test_escapa_reservados_do_little_text(self):
+        assert escape_commentary("a*b_c(d)") == r"a\*b\_c\(d\)"
+
+    def test_backslash_escapado_primeiro(self):
+        # Se '\' não fosse o primeiro, escaparíamos os escapes gerados.
+        assert escape_commentary("a\\b") == "a\\\\b"
+
+    def test_texto_limpo_intacto(self):
+        assert escape_commentary("Post normal, sem reservados.") == "Post normal, sem reservados."
+
+
+class TestPostApprove:
+    def test_rejeita_publish_at_no_passado(self):
+        with pytest.raises(ValidationError):
+            PostApprove(publish_at=datetime.now(timezone.utc) - timedelta(hours=1))
+
+    def test_naive_vira_utc(self):
+        futuro_naive = datetime.utcnow() + timedelta(days=1)  # noqa: DTZ003
+        approved = PostApprove(publish_at=futuro_naive)
+        assert approved.publish_at.tzinfo is not None
+
+    def test_aceita_futuro_aware(self):
+        alvo = datetime.now(timezone.utc) + timedelta(hours=2)
+        assert PostApprove(publish_at=alvo).publish_at == alvo
+
+
+class TestPostUpdate:
+    def test_rejeita_commentary_acima_de_3000(self):
+        with pytest.raises(ValidationError):
+            PostUpdate(commentary="x" * 3001)
+
+    def test_aceita_commentary_no_limite(self):
+        assert len(PostUpdate(commentary="x" * 3000).commentary) == 3000
+
+
+class TestFernetLazy:
+    def test_import_nao_exige_fernet_valido(self):
+        # security foi importado indiretamente sem instanciar Fernet — se
+        # chegou aqui, o lazy init funciona.
+        import app.security  # noqa: F401
