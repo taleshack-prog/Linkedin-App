@@ -18,3 +18,8 @@ celerybeat-schedule*
 .vscode/
 .idea/
 .DS_Store
+
+# Frontend
+node_modules/
+frontend/dist/
+frontend/.env
