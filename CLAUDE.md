@@ -1,0 +1,60 @@
+# LinkPost AI — Contexto de desenvolvimento (Claude Code)
+
+SaaS multi-tenant que gera posts de LinkedIn com IA (pesquisa web + redação) e
+publica automaticamente via API oficial do LinkedIn. Uso próprio + comercialização.
+
+## Stack (padrão dos projetos do Tales)
+- Backend: FastAPI + SQLAlchemy 2.0 + Pydantic v2
+- Fila: Celery (worker + beat) sobre Redis
+- Banco: PostgreSQL (Railway)
+- Deploy: Railway (3 serviços: api, worker, beat) | Frontend futuro: React na Vercel
+- IA: Anthropic API direta (uma chamada por pauta, com tool web_search)
+
+## Arquitetura
+```
+briefs (pauta) --Celery--> generate_from_brief --> posts em DRAFT
+usuário revisa/edita --> POST /posts/{id}/approve (define publish_at)
+beat 60s --> scan_due_posts (FOR UPDATE SKIP LOCKED) --> publish_post
+publish_post --> refresh token se preciso --> POST /rest/posts --> published
+beat 6h  --> refresh_expiring_tokens (renovação proativa)
+```
+
+## Invariantes — NÃO violar
+1. **Humano no loop**: post só vai ao LinkedIn se status=approved com publish_at
+   definido pelo usuário. Nunca publicar draft automaticamente.
+2. **Tokens sempre criptografados** (Fernet, app/security.py). Nunca logar token.
+3. **Multi-tenant**: toda query filtra por user_id. Nunca expor dados entre tenants.
+4. **Uma chamada Anthropic por pauta** (texto completo, sem chunking).
+5. Escapar commentary com `escape_commentary()` antes do POST (little text do LinkedIn).
+
+## Restrições da API do LinkedIn (verificadas 07/2026)
+- Endpoint: POST https://api.linkedin.com/rest/posts (não usar /ugcPosts — deprecado)
+- Headers obrigatórios: `LinkedIn-Version: YYYYMM` (config), `X-Restli-Protocol-Version: 2.0.0`
+- Escopo perfil pessoal: `w_member_social` (self-serve, produto "Share on LinkedIn")
+- Sucesso = 201 + header `x-restli-id` (URN do post)
+- SEM agendamento nativo (por isso o Celery beat), SEM edição de post publicado
+  (corrigir = deletar e recriar), SEM @mentions/enquetes/documentos/artigos via API
+- Access token ~60 dias; refresh token ~365 dias; rate ~100 calls/dia/membro
+- 401/403 no publish => marcar conta needs_reauth, não fazer retry
+
+## Convenções de trabalho
+- Reescrever arquivos inteiros (`cat > arquivo << 'EOF'`), não patches incrementais
+- Heredocs Python: `python3 << 'PYEOF'`, nunca Node (problema com `!`)
+- Migrations: por ora db/schema.sql é a fonte da verdade; introduzir Alembic
+  antes do primeiro cliente pago
+- Testes de publicação: usar conta LinkedIn de teste, nunca a conta principal
+
+## Comandos
+```bash
+docker compose up             # dev local (api :8000, worker, beat, pg, redis)
+uvicorn app.main:app --reload # só a API
+celery -A app.tasks.celery_app.celery worker -l info
+celery -A app.tasks.celery_app.celery beat -l info
+```
+
+## Roadmap
+- [ ] MVP single-user (você): OAuth + geração + aprovação + publish
+- [ ] Frontend React (Vercel): calendário editorial + fila de aprovação
+- [ ] Posts com imagem (POST /rest/images, upload em 3 etapas, depois referenciar URN)
+- [ ] Billing (Stripe) + auth real (substituir X-API-Key em app/security.py)
+- [ ] w_organization_social (Company Pages) — requer review Marketing API (2-4 semanas)

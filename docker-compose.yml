@@ -1,0 +1,35 @@
+# Ambiente local de desenvolvimento (produção = Railway: api + worker + beat como serviços separados)
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: linkpost
+    ports: ["5432:5432"]
+    volumes: ["./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql"]
+
+  redis:
+    image: redis:7
+    ports: ["6379:6379"]
+
+  api:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    env_file: .env
+    volumes: [".:/code"]
+    ports: ["8000:8000"]
+    depends_on: [db, redis]
+
+  worker:
+    build: .
+    command: celery -A app.tasks.celery_app.celery worker -l info
+    env_file: .env
+    volumes: [".:/code"]
+    depends_on: [db, redis]
+
+  beat:
+    build: .
+    command: celery -A app.tasks.celery_app.celery beat -l info
+    env_file: .env
+    volumes: [".:/code"]
+    depends_on: [db, redis]
