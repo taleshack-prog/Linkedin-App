@@ -73,6 +73,14 @@ Deploy na Vercel: importar o repo, definir Root Directory = `frontend`,
 adicionar a env `VITE_API_URL` (URL da API no Railway) e, no backend,
 incluir a URL da Vercel em `FRONTEND_ORIGINS`.
 
+## Imagens nos posts (opcional)
+
+Upload manual (JPG/PNG/GIF ate 8 MB) ou geracao por IA via Google Gemini.
+Para a geracao por IA: criar key em https://aistudio.google.com e definir
+`GEMINI_API_KEY` no ambiente (sem a key, o botao retorna erro claro e o
+restante do sistema funciona normalmente). Modelo configuravel via
+`GEMINI_IMAGE_MODEL`. A imagem gerada passa pela mesma revisao humana.
+
 ## Testes
 
 ```bash

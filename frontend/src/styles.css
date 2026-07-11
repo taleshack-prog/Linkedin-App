@@ -171,6 +171,9 @@ textarea:focus, input:focus, select:focus, button:focus-visible {
 .btn.danger { color: var(--st-failed); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+.ai-form { display: flex; gap: 8px; margin-top: 10px; }
+.ai-form input { flex: 1; }
+
 .field { margin-bottom: 14px; }
 .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: var(--ink-soft); }
 .row { display: flex; gap: 12px; }

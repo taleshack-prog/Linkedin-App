@@ -62,6 +62,11 @@ export const api = {
     return resp.json();
   },
   deletePostImage: (id) => request(`/posts/${id}/image`, { method: "DELETE" }),
+  generatePostImage: (id, instructions) =>
+    request(`/posts/${id}/generate-image`, {
+      method: "POST",
+      body: JSON.stringify({ instructions: instructions || null }),
+    }),
   fetchPostImageBlob: async (id) => {
     const resp = await fetch(`${BASE}/posts/${id}/image`, { headers: { "X-API-Key": getApiKey() } });
     if (!resp.ok) throw new Error(`Erro ${resp.status}`);

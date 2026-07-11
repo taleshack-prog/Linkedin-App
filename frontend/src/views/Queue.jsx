@@ -35,6 +35,9 @@ function PostCard({ post, onChanged }) {
   const [error, setError] = useState("");
   const fileInput = useRef(null);
   const [imgVersion, setImgVersion] = useState(0);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiInstructions, setAiInstructions] = useState("");
+  const [generating, setGenerating] = useState(false);
 
   const tagList = hashtags.split(/\s+/).filter(Boolean).map((h) => (h.startsWith("#") ? h : `#${h}`));
   const total = commentary.length + (tagList.length ? 2 + tagList.join(" ").length : 0);
@@ -75,6 +78,22 @@ function PostCard({ post, onChanged }) {
       await api.deletePostImage(post.id);
       setImgVersion((v) => v + 1);
     });
+
+  async function generateAiImage() {
+    setGenerating(true);
+    setError("");
+    try {
+      await api.generatePostImage(post.id, aiInstructions.trim() || null);
+      setImgVersion((v) => v + 1);
+      setAiOpen(false);
+      setAiInstructions("");
+      onChanged();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setGenerating(false);
+    }
+  }
 
   return (
     <article className={`card ${post.status}`}>
@@ -146,6 +165,9 @@ function PostCard({ post, onChanged }) {
                     Remover imagem
                   </button>
                 )}
+                <button className="btn" onClick={() => setAiOpen((o) => !o)} disabled={busy || generating}>
+                  {generating ? "Gerando imagem…" : "Gerar imagem (IA)"}
+                </button>
               </>
             )}
             {post.status === "draft" && (
@@ -168,6 +190,20 @@ function PostCard({ post, onChanged }) {
               </button>
             )}
           </div>
+          {aiOpen && (
+            <div className="ai-form">
+              <input
+                value={aiInstructions}
+                onChange={(e) => setAiInstructions(e.target.value)}
+                placeholder="Instruções opcionais (ex.: tons de azul, estilo isométrico)"
+                maxLength={500}
+                onKeyDown={(e) => e.key === "Enter" && !generating && generateAiImage()}
+              />
+              <button className="btn primary" onClick={generateAiImage} disabled={generating}>
+                {generating ? "Gerando…" : "Gerar"}
+              </button>
+            </div>
+          )}
         </>
       )}
     </article>

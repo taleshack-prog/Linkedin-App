@@ -4,10 +4,13 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
+from pydantic import BaseModel, Field
+
 from app.database import get_db
 from app.models import Post, PostStatus, User
 from app.schemas import PostApprove, PostOut, PostUpdate
 from app.security import get_current_user
+from app.services import image_generator
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -134,5 +137,36 @@ def delete_post_image(
     post.image_data = None
     post.image_mime = None
     post.image_filename = None
+    db.commit()
+    return post
+
+
+class GenerateImageIn(BaseModel):
+    instructions: str | None = Field(default=None, max_length=500)
+
+
+@router.post("/{post_id}/generate-image", response_model=PostOut)
+def generate_post_image(
+    post_id: uuid.UUID,
+    payload: GenerateImageIn | None = None,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Gera imagem via Gemini a partir do texto do post (substitui a atual, se houver).
+
+    A imagem entra no mesmo campo do upload manual e passa pela mesma revisão
+    humana — nada muda no fluxo de aprovação.
+    """
+    post = _own_post(post_id, db, user)
+    if post.status not in (PostStatus.draft, PostStatus.approved):
+        raise HTTPException(409, "Post não é mais editável")
+    instructions = payload.instructions if payload else None
+    try:
+        data, mime = image_generator.generate_post_image(post.commentary, instructions)
+    except image_generator.ImageGenError as exc:
+        raise HTTPException(exc.status if exc.status in (429, 503) else 502, str(exc))
+    post.image_data = data
+    post.image_mime = mime
+    post.image_filename = "gemini-ai.png"
     db.commit()
     return post

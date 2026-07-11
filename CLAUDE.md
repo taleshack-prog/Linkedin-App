@@ -56,6 +56,6 @@ celery -A app.tasks.celery_app.celery beat -l info
 - [ ] MVP single-user (você): OAuth + geração + aprovação + publish
 - [x] Frontend React (Vercel): calendário editorial + fila de aprovação (`frontend/`)
 - [x] Posts com imagem — upload pelo usuário (Images API: initializeUpload -> PUT binário -> content.media.id)
-- [ ] Geração de imagem por IA (requer provedor externo — Anthropic não gera imagens)
+- [x] Geração de imagem por IA (Gemini gemini-3.1-flash-image-preview; GEMINI_API_KEY opcional)
 - [ ] Billing (Stripe) + auth real (substituir X-API-Key em app/security.py)
 - [ ] w_organization_social (Company Pages) — requer review Marketing API (2-4 semanas)

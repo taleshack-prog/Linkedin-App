@@ -74,3 +74,32 @@ class TestPostPayload:
         from app.services.linkedin_client import build_post_payload
         p = build_post_payload("urn:li:person:X", "a(b)")
         assert p["commentary"] == r"a\(b\)"
+
+
+class TestImageGenerator:
+    def test_prompt_inclui_tema_e_proibe_texto(self):
+        from app.services.image_generator import build_image_prompt
+        p = build_image_prompt("Tendências de Web3 no Brasil")
+        assert "Tendências de Web3 no Brasil" in p and "NÃO incluir nenhum texto" in p
+
+    def test_prompt_trunca_e_anexa_instrucoes(self):
+        from app.services.image_generator import build_image_prompt
+        p = build_image_prompt("x" * 5000, instructions="tons de azul")
+        assert "x" * 700 in p and "x" * 701 not in p and "tons de azul" in p
+
+    def test_parse_extrai_base64_e_mime(self):
+        import base64
+        from app.services.image_generator import parse_image_response
+        raw = b"\x89PNG-fake"
+        data = {"candidates": [{"content": {"parts": [
+            {"text": "aqui está"},
+            {"inlineData": {"mimeType": "image/png", "data": base64.b64encode(raw).decode()}},
+        ]}}]}
+        img, mime = parse_image_response(data)
+        assert img == raw and mime == "image/png"
+
+    def test_parse_sem_imagem_levanta_erro(self):
+        import pytest as _pytest
+        from app.services.image_generator import ImageGenError, parse_image_response
+        with _pytest.raises(ImageGenError):
+            parse_image_response({"candidates": [{"content": {"parts": [{"text": "só texto"}]}}]})

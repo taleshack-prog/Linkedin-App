@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str
     ANTHROPIC_MODEL: str = "claude-sonnet-4-6"
 
+    # Google Gemini — geração de imagem opcional (vazio = feature desligada)
+    GEMINI_API_KEY: str = ""
+    GEMINI_IMAGE_MODEL: str = "gemini-3.1-flash-image-preview"
+
     # Publicação
     PUBLISH_SCAN_INTERVAL_SECONDS: int = 60
     MAX_PUBLISH_ATTEMPTS: int = 3
