@@ -126,3 +126,32 @@ class TestProfileContext:
         from app.services.content_generator import build_profile_context
         ctx = build_profile_context({"goal": "autoridade"})
         assert "Objetivo" in ctx and "Tom de voz" not in ctx and "Empresa" not in ctx
+
+
+class TestOpenAIProvider:
+    def test_parse_openai_extrai_b64(self):
+        import base64
+        from app.services.image_generator import parse_openai_response
+        raw = b"PNG-openai"
+        img, mime = parse_openai_response({"data": [{"b64_json": base64.b64encode(raw).decode()}]})
+        assert img == raw and mime == "image/png"
+
+    def test_parse_openai_sem_dados_levanta_erro(self):
+        import pytest as _pytest
+        from app.services.image_generator import ImageGenError, parse_openai_response
+        with _pytest.raises(ImageGenError):
+            parse_openai_response({"data": []})
+        with _pytest.raises(ImageGenError):
+            parse_openai_response({"data": [{"b64_json": None}]})
+
+    def test_provider_invalido_levanta_503(self):
+        import pytest as _pytest
+        from app.config import get_settings
+        from app.services.image_generator import ImageGenError, generate_post_image
+        get_settings().IMAGE_PROVIDER = "midjourney"
+        try:
+            with _pytest.raises(ImageGenError) as exc:
+                generate_post_image("post qualquer")
+            assert exc.value.status == 503
+        finally:
+            get_settings().IMAGE_PROVIDER = "gemini"

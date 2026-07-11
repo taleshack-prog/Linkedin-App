@@ -25,9 +25,13 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str
     ANTHROPIC_MODEL: str = "claude-sonnet-4-6"
 
-    # Google Gemini — geração de imagem opcional (vazio = feature desligada)
+    # Geração de imagem por IA (opcional) — provedor plugável: "gemini" | "openai"
+    IMAGE_PROVIDER: str = "gemini"
     GEMINI_API_KEY: str = ""
     GEMINI_IMAGE_MODEL: str = "gemini-3.1-flash-image-preview"
+    OPENAI_API_KEY: str = ""
+    OPENAI_IMAGE_MODEL: str = "gpt-image-1-mini"
+    OPENAI_IMAGE_QUALITY: str = "medium"                # low | medium | high
 
     # Publicação
     PUBLISH_SCAN_INTERVAL_SECONDS: int = 60

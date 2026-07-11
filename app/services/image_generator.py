@@ -1,4 +1,4 @@
-"""Geração de imagem para posts via Google Gemini (API generateContent).
+"""Geração de imagem para posts — provedor plugável (IMAGE_PROVIDER): Gemini ou OpenAI.
 
 Formato verificado (03/2026):
 - POST https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent
@@ -16,6 +16,7 @@ import httpx
 from app.config import get_settings
 
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+OPENAI_IMAGES_URL = "https://api.openai.com/v1/images/generations"
 
 _COMMENTARY_EXCERPT_CHARS = 700
 
@@ -58,18 +59,58 @@ def parse_image_response(data: dict) -> tuple[bytes, str]:
     raise ImageGenError(502, "Resposta do Gemini não contém imagem (inlineData)")
 
 
-def generate_post_image(commentary: str, instructions: str | None = None) -> tuple[bytes, str]:
-    """Gera a imagem. Retorna (bytes, mime). Levanta ImageGenError em falha."""
+def parse_openai_response(data: dict) -> tuple[bytes, str]:
+    """Extrai (bytes, mime) da resposta do /v1/images/generations (b64_json)."""
+    try:
+        b64 = data["data"][0]["b64_json"]
+    except (KeyError, IndexError, TypeError):
+        raise ImageGenError(502, f"Resposta OpenAI sem data[0].b64_json: {str(data)[:300]}")
+    if not b64:
+        raise ImageGenError(502, "Resposta OpenAI com b64_json vazio")
+    return base64.b64decode(b64), "image/png"
+
+
+def _generate_gemini(prompt: str) -> tuple[bytes, str]:
     s = get_settings()
     if not s.GEMINI_API_KEY:
         raise ImageGenError(503, "GEMINI_API_KEY não configurada no servidor")
-
     resp = httpx.post(
         GEMINI_URL.format(model=s.GEMINI_IMAGE_MODEL),
-        json={"contents": [{"parts": [{"text": build_image_prompt(commentary, instructions)}]}]},
+        json={"contents": [{"parts": [{"text": prompt}]}]},
         headers={"x-goog-api-key": s.GEMINI_API_KEY, "Content-Type": "application/json"},
         timeout=120,
     )
     if resp.status_code != 200:
-        raise ImageGenError(resp.status_code, resp.text)
+        raise ImageGenError(resp.status_code, f"Gemini: {resp.text}")
     return parse_image_response(resp.json())
+
+
+def _generate_openai(prompt: str) -> tuple[bytes, str]:
+    s = get_settings()
+    if not s.OPENAI_API_KEY:
+        raise ImageGenError(503, "OPENAI_API_KEY não configurada no servidor")
+    resp = httpx.post(
+        OPENAI_IMAGES_URL,
+        json={
+            "model": s.OPENAI_IMAGE_MODEL,
+            "prompt": prompt,
+            "size": "1024x1024",
+            "quality": s.OPENAI_IMAGE_QUALITY,
+        },
+        headers={"Authorization": f"Bearer {s.OPENAI_API_KEY}"},
+        timeout=120,
+    )
+    if resp.status_code != 200:
+        raise ImageGenError(resp.status_code, f"OpenAI: {resp.text}")
+    return parse_openai_response(resp.json())
+
+
+def generate_post_image(commentary: str, instructions: str | None = None) -> tuple[bytes, str]:
+    """Gera a imagem via provedor configurado. Retorna (bytes, mime)."""
+    prompt = build_image_prompt(commentary, instructions)
+    provider = get_settings().IMAGE_PROVIDER.strip().lower()
+    if provider == "openai":
+        return _generate_openai(prompt)
+    if provider == "gemini":
+        return _generate_gemini(prompt)
+    raise ImageGenError(503, f"IMAGE_PROVIDER inválido: '{provider}' (use gemini ou openai)")
