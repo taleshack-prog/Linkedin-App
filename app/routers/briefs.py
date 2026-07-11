@@ -13,7 +13,7 @@ from app.tasks.generation_tasks import generate_from_brief
 
 router = APIRouter(prefix="/briefs", tags=["briefs"])
 
-MAX_SOURCE_FILE_BYTES = 10 * 1024 * 1024  # 10 MB
+MAX_SOURCE_FILE_BYTES = 25 * 1024 * 1024  # 25 MB
 
 
 class BriefOut(BaseModel):
@@ -70,7 +70,7 @@ async def create_brief(
     if source_file is not None and source_file.filename:
         data = await source_file.read()
         if len(data) > MAX_SOURCE_FILE_BYTES:
-            raise HTTPException(413, "Arquivo acima de 10 MB")
+            raise HTTPException(413, "Arquivo acima de 25 MB")
         try:
             source_text = extract_text(source_file.filename, data)
         except ExtractionError as exc:

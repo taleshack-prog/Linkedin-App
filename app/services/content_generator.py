@@ -24,9 +24,34 @@ Regras dos posts:
 - Encerrar com pergunta ou CTA leve.
 - 3 a 5 hashtags relevantes por post.
 
-Responda APENAS com JSON válido, sem markdown, no formato:
-{"posts": [{"commentary": "...", "hashtags": ["...", "..."], "sources": ["url1"]}]}
+Ao terminar a pesquisa e a redação, entregue os posts chamando a ferramenta
+emit_posts — NÃO escreva o JSON como texto na resposta.
 """
+
+# Tool com schema: a API da Anthropic garante que o input é JSON válido —
+# elimina os erros de parse de JSON emitido como texto livre.
+POSTS_TOOL = {
+    "name": "emit_posts",
+    "description": "Entrega a lista final de posts gerados para o LinkedIn.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "posts": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "commentary": {"type": "string", "description": "Texto completo do post"},
+                        "hashtags": {"type": "array", "items": {"type": "string"}},
+                        "sources": {"type": "array", "items": {"type": "string"}},
+                    },
+                    "required": ["commentary"],
+                },
+            }
+        },
+        "required": ["posts"],
+    },
+}
 
 
 _ENTITY_LABEL = {
@@ -41,6 +66,45 @@ _GOAL_LABEL = {
     "recrutamento": "atrair oportunidades/talentos",
     "marca_empregadora": "fortalecer a marca empregadora",
 }
+
+
+def _escape_ctrl_in_strings(raw: str) -> str:
+    """Escapa caracteres de controle DENTRO de strings JSON (quebra literal etc.)."""
+    out, in_string, escaped = [], False, False
+    repl = {"\n": "\\n", "\r": "\\r", "\t": "\\t"}
+    for ch in raw:
+        if in_string and ch in repl and not escaped:
+            out.append(repl[ch])
+            continue
+        out.append(ch)
+        if escaped:
+            escaped = False
+        elif ch == "\\":
+            escaped = True
+        elif ch == '"':
+            in_string = not in_string
+    return "".join(out)
+
+
+def parse_json_lenient(text: str) -> dict:
+    """Extrai e parseia o JSON de texto livre, tolerando caracteres de controle."""
+    start, end = text.find("{"), text.rfind("}")
+    if start == -1 or end == -1:
+        raise ValueError(f"Resposta sem JSON parseável: {text[:300]}")
+    raw = text[start : end + 1]
+    try:
+        return json.loads(raw, strict=False)
+    except json.JSONDecodeError:
+        return json.loads(_escape_ctrl_in_strings(raw), strict=False)
+
+
+def extract_posts_payload(msg) -> dict:
+    """Prioriza o tool_use emit_posts (JSON garantido pela API); cai para texto."""
+    for block in msg.content:
+        if getattr(block, "type", None) == "tool_use" and getattr(block, "name", "") == "emit_posts":
+            return block.input
+    text = "".join(b.text for b in msg.content if getattr(b, "type", None) == "text").strip()
+    return parse_json_lenient(text)
 
 
 def build_profile_context(profile: dict | None) -> str:
@@ -103,19 +167,16 @@ def generate_posts(
 
     msg = client.messages.create(
         model=s.ANTHROPIC_MODEL,
-        max_tokens=4096,
+        max_tokens=8192,
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": user_prompt}],
-        tools=[{"type": "web_search_20250305", "name": "web_search", "max_uses": 5}],
+        tools=[
+            {"type": "web_search_20250305", "name": "web_search", "max_uses": 5},
+            POSTS_TOOL,
+        ],
     )
 
-    # A resposta pode intercalar blocos de tool_use/tool_result; o JSON final
-    # está nos blocos de texto — concatenar e parsear o último objeto válido.
-    text = "".join(b.text for b in msg.content if b.type == "text").strip()
-    start, end = text.find("{"), text.rfind("}")
-    if start == -1 or end == -1:
-        raise ValueError(f"Resposta sem JSON parseável: {text[:300]}")
-    data = json.loads(text[start : end + 1])
+    data = extract_posts_payload(msg)
 
     posts = data.get("posts", [])
     if not posts:

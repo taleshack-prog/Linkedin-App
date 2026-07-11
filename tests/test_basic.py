@@ -191,3 +191,33 @@ class TestSourceBlock:
         block = build_source_block("conteúdo do relatório")
         assert "PRINCIPALMENTE" in block and "conteúdo do relatório" in block
         assert build_source_block(None) == "" and build_source_block("") == ""
+
+
+class TestRobustJsonParsing:
+    def test_json_com_quebra_literal_dentro_da_string(self):
+        # Reproduz o bug real: "Expecting ',' delimiter" com \n literal no commentary
+        from app.services.content_generator import parse_json_lenient
+        raw = '{"posts": [{"commentary": "linha 1\nlinha 2\n\n\\"citação\\" ok", "hashtags": []}]}'
+        data = parse_json_lenient("bla bla " + raw + " tchau")
+        assert data["posts"][0]["commentary"] == 'linha 1\nlinha 2\n\n"citação" ok'
+
+    def test_tool_use_tem_prioridade_sobre_texto(self):
+        from types import SimpleNamespace as NS
+        from app.services.content_generator import extract_posts_payload
+        msg = NS(content=[
+            NS(type="text", text="pesquisando..."),
+            NS(type="tool_use", name="emit_posts",
+               input={"posts": [{"commentary": "post via tool", "hashtags": ["ia"]}]}),
+        ])
+        assert extract_posts_payload(msg)["posts"][0]["commentary"] == "post via tool"
+
+    def test_fallback_para_texto_quando_nao_ha_tool(self):
+        from types import SimpleNamespace as NS
+        from app.services.content_generator import extract_posts_payload
+        msg = NS(content=[NS(type="text", text='{"posts": [{"commentary": "via texto"}]}')])
+        assert extract_posts_payload(msg)["posts"][0]["commentary"] == "via texto"
+
+    def test_schema_da_tool_exige_commentary(self):
+        from app.services.content_generator import POSTS_TOOL
+        item = POSTS_TOOL["input_schema"]["properties"]["posts"]["items"]
+        assert "commentary" in item["required"] and POSTS_TOOL["name"] == "emit_posts"

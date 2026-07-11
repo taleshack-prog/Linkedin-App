@@ -113,7 +113,7 @@ export default function Briefs({ accounts, onGenerated }) {
             </div>
           </div>
           <div className="field">
-            <label htmlFor="source">Material de referência — opcional (PDF, DOCX, TXT, MD ou CSV, até 10 MB)</label>
+            <label htmlFor="source">Material de referência — opcional (PDF, DOCX, TXT, MD ou CSV, até 25 MB)</label>
             <input
               id="source"
               ref={fileInput}
