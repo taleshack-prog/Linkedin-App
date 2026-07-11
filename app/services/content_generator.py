@@ -69,9 +69,21 @@ def build_profile_context(profile: dict | None) -> str:
     return "\n".join(lines)
 
 
+def build_source_block(source_text: str | None) -> str:
+    """Bloco de material de referência anexado ao prompt."""
+    if not source_text:
+        return ""
+    return (
+        "Material de referência fornecido pelo autor — os posts devem se basear "
+        "PRINCIPALMENTE neste conteúdo (dados, argumentos e exemplos dele); use a "
+        "pesquisa web apenas para complementar com fatos atuais:\n"
+        "<<<MATERIAL\n" + source_text + "\nMATERIAL>>>"
+    )
+
+
 def generate_posts(
     theme: str, instructions: str | None, count: int, language: str,
-    profile: dict | None = None,
+    profile: dict | None = None, source_text: str | None = None,
 ) -> list[dict]:
     s = get_settings()
     client = anthropic.Anthropic(api_key=s.ANTHROPIC_API_KEY)
@@ -85,6 +97,9 @@ def generate_posts(
     context = build_profile_context(profile)
     if context:
         user_prompt = f"{context}\n\n{user_prompt}"
+    source = build_source_block(source_text)
+    if source:
+        user_prompt = f"{user_prompt}\n\n{source}"
 
     msg = client.messages.create(
         model=s.ANTHROPIC_MODEL,

@@ -69,6 +69,8 @@ class ContentBrief(Base):
     theme: Mapped[str] = mapped_column(Text)
     instructions: Mapped[str | None] = mapped_column(Text, nullable=True)
     posts_per_week: Mapped[int] = mapped_column(SmallInteger, default=3)
+    source_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    source_filename: Mapped[str | None] = mapped_column(Text, nullable=True)
     language: Mapped[str] = mapped_column(String, default="pt-BR")
     status: Mapped[str] = mapped_column(String, default="pending")  # pending|generating|generated|failed
     error: Mapped[str | None] = mapped_column(Text, nullable=True)

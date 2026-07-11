@@ -29,6 +29,7 @@ def generate_from_brief(self, brief_id: str, linkedin_account_id: str):
             count=brief.posts_per_week,
             language=brief.language,
             profile=profile.to_context_dict() if profile else None,
+            source_text=brief.source_text,
         )
         for p in posts:
             db.add(

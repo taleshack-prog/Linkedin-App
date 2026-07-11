@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
 
 const BRIEF_LABEL = {
@@ -15,6 +15,8 @@ export default function Briefs({ accounts, onGenerated }) {
   const [instructions, setInstructions] = useState("");
   const [count, setCount] = useState(3);
   const [accountId, setAccountId] = useState("");
+  const [file, setFile] = useState(null);
+  const fileInput = useRef(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
@@ -38,15 +40,20 @@ export default function Briefs({ accounts, onGenerated }) {
     setError("");
     setNotice("");
     try {
-      await api.createBrief({
-        theme,
-        instructions: instructions || null,
-        posts_per_week: count,
-        language: "pt-BR",
-        linkedin_account_id: accountId,
-      });
+      await api.createBrief(
+        {
+          theme,
+          instructions: instructions || null,
+          posts_per_week: count,
+          language: "pt-BR",
+          linkedin_account_id: accountId,
+        },
+        file
+      );
       setTheme("");
       setInstructions("");
+      setFile(null);
+      if (fileInput.current) fileInput.current.value = "";
       setNotice("Pauta enviada. A IA pesquisa o tema e os rascunhos aparecem em Rascunhos.");
       load();
     } catch (e) {
@@ -105,6 +112,21 @@ export default function Briefs({ accounts, onGenerated }) {
               </select>
             </div>
           </div>
+          <div className="field">
+            <label htmlFor="source">Material de referência — opcional (PDF, DOCX, TXT, MD ou CSV, até 10 MB)</label>
+            <input
+              id="source"
+              ref={fileInput}
+              type="file"
+              accept=".pdf,.docx,.txt,.md,.csv"
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+            />
+            {file && (
+              <span className="mono" style={{ display: "block", marginTop: 4 }}>
+                A IA vai basear os posts em: {file.name}
+              </span>
+            )}
+          </div>
           <button className="btn primary" onClick={create} disabled={busy || theme.trim().length < 3}>
             {busy ? "Enviando…" : "Gerar rascunhos"}
           </button>
@@ -117,6 +139,7 @@ export default function Briefs({ accounts, onGenerated }) {
             <span className={`chip ${BRIEF_CHIP[b.status] || "cancelled"}`}>{BRIEF_LABEL[b.status] || b.status}</span>
             <span className="mono">{new Date(b.created_at).toLocaleString("pt-BR")}</span>
             <span className="mono">{b.posts_per_week} posts</span>
+            {b.source_filename && <span className="mono">📎 {b.source_filename}</span>}
           </div>
           <p className="commentary" style={{ marginBottom: 0 }}><strong>{b.theme}</strong></p>
           {b.error && <div className="error" style={{ marginTop: 10 }}>{b.error}</div>}

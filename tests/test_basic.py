@@ -155,3 +155,39 @@ class TestOpenAIProvider:
             assert exc.value.status == 503
         finally:
             get_settings().IMAGE_PROVIDER = "gemini"
+
+
+class TestTextExtractor:
+    def test_txt_extrai_e_trunca(self):
+        from app.services.text_extractor import MAX_SOURCE_CHARS, extract_text
+        assert extract_text("nota.txt", "relatório Q3 da HTF".encode()) == "relatório Q3 da HTF"
+        assert len(extract_text("big.md", b"a" * 100_000)) == MAX_SOURCE_CHARS
+
+    def test_docx_extrai_paragrafos_e_tabelas(self):
+        import io
+        from docx import Document
+        from app.services.text_extractor import extract_text
+        doc = Document()
+        doc.add_paragraph("Resultados do trimestre")
+        table = doc.add_table(rows=1, cols=2)
+        table.rows[0].cells[0].text = "Receita"
+        table.rows[0].cells[1].text = "R$ 100k"
+        buf = io.BytesIO(); doc.save(buf)
+        text = extract_text("relatorio.docx", buf.getvalue())
+        assert "Resultados do trimestre" in text and "Receita | R$ 100k" in text
+
+    def test_formato_nao_suportado_e_vazio(self):
+        import pytest as _pytest
+        from app.services.text_extractor import ExtractionError, extract_text
+        with _pytest.raises(ExtractionError):
+            extract_text("virus.exe", b"MZ")
+        with _pytest.raises(ExtractionError):
+            extract_text("vazio.txt", b"   ")
+
+
+class TestSourceBlock:
+    def test_bloco_orienta_basear_no_material(self):
+        from app.services.content_generator import build_source_block
+        block = build_source_block("conteúdo do relatório")
+        assert "PRINCIPALMENTE" in block and "conteúdo do relatório" in block
+        assert build_source_block(None) == "" and build_source_block("") == ""

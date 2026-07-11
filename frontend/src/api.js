@@ -43,7 +43,21 @@ export const api = {
   saveProfile: (payload) => request("/profile", { method: "PUT", body: JSON.stringify(payload) }),
   linkedinLogin: () => request("/auth/linkedin/login"),
   briefs: () => request("/briefs"),
-  createBrief: (payload) => request("/briefs", { method: "POST", body: JSON.stringify(payload) }),
+  createBrief: async (payload, file) => {
+    const form = new FormData();
+    Object.entries(payload).forEach(([k, v]) => v != null && form.append(k, v));
+    if (file) form.append("source_file", file);
+    const resp = await fetch(`${BASE}/briefs`, {
+      method: "POST",
+      headers: { "X-API-Key": getApiKey() },   // Content-Type: o browser define o boundary
+      body: form,
+    });
+    if (!resp.ok) {
+      const data = await resp.json().catch(() => ({}));
+      throw new Error(typeof data.detail === "string" ? data.detail : `Erro ${resp.status}`);
+    }
+    return resp.json();
+  },
   posts: (status) => request(`/posts${status ? `?status=${status}` : ""}`),
   editPost: (id, payload) => request(`/posts/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   approvePost: (id, publishAt) =>

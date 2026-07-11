@@ -46,6 +46,8 @@ CREATE TABLE content_briefs (
     theme          TEXT NOT NULL,                          -- ex: "tendências em Web3"
     instructions   TEXT,                                   -- tom de voz, CTA, persona, idioma
     posts_per_week SMALLINT NOT NULL DEFAULT 3 CHECK (posts_per_week BETWEEN 1 AND 7),
+    source_text    TEXT,                                   -- material de referência (texto extraído)
+    source_filename TEXT,
     language       TEXT NOT NULL DEFAULT 'pt-BR',
     status         TEXT NOT NULL DEFAULT 'pending',        -- pending | generating | generated | failed
     error          TEXT,
