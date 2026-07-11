@@ -43,6 +43,15 @@ export const api = {
   saveProfile: (payload) => request("/profile", { method: "PUT", body: JSON.stringify(payload) }),
   linkedinLogin: () => request("/auth/linkedin/login"),
   briefs: () => request("/briefs"),
+  updateBrief: (id, payload) => request(`/briefs/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  regenerateBrief: (id) => request(`/briefs/${id}/regenerate`, { method: "POST" }),
+  deleteBrief: async (id) => {
+    const resp = await fetch(`${BASE}/briefs/${id}`, { method: "DELETE", headers: { "X-API-Key": getApiKey() } });
+    if (!resp.ok && resp.status !== 204) {
+      const data = await resp.json().catch(() => ({}));
+      throw new Error(typeof data.detail === "string" ? data.detail : `Erro ${resp.status}`);
+    }
+  },
   createBrief: async (payload, file) => {
     const form = new FormData();
     Object.entries(payload).forEach(([k, v]) => v != null && form.append(k, v));

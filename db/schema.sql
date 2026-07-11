@@ -43,6 +43,7 @@ CREATE INDEX idx_li_accounts_expiring ON linkedin_accounts(access_expires_at) WH
 CREATE TABLE content_briefs (
     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id        UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    linkedin_account_id UUID REFERENCES linkedin_accounts(id) ON DELETE SET NULL,
     theme          TEXT NOT NULL,                          -- ex: "tendências em Web3"
     instructions   TEXT,                                   -- tom de voz, CTA, persona, idioma
     posts_per_week SMALLINT NOT NULL DEFAULT 3 CHECK (posts_per_week BETWEEN 1 AND 7),

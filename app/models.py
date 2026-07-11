@@ -66,6 +66,9 @@ class ContentBrief(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    linkedin_account_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("linkedin_accounts.id", ondelete="SET NULL"), nullable=True
+    )
     theme: Mapped[str] = mapped_column(Text)
     instructions: Mapped[str | None] = mapped_column(Text, nullable=True)
     posts_per_week: Mapped[int] = mapped_column(SmallInteger, default=3)
