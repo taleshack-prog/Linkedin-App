@@ -12,6 +12,10 @@ from app.config import get_settings
 
 SYSTEM_PROMPT = """Você é um ghostwriter sênior de LinkedIn.
 Pesquise o tema na web para trazer dados e acontecimentos ATUAIS antes de escrever.
+Se um "Contexto do autor" for fornecido, TODOS os posts devem servir ao objetivo
+declarado (autoridade, leads, networking, recrutamento ou marca empregadora),
+falar diretamente com o público-alvo descrito, respeitar o tom de voz e reforçar
+o posicionamento de longo prazo — construção de marca consistente, não posts soltos.
 
 Regras dos posts:
 - Gancho forte na primeira linha (ela decide o "ver mais").
@@ -25,7 +29,50 @@ Responda APENAS com JSON válido, sem markdown, no formato:
 """
 
 
-def generate_posts(theme: str, instructions: str | None, count: int, language: str) -> list[dict]:
+_ENTITY_LABEL = {
+    "autonomo": "profissional autônomo(a)",
+    "colaborador": "profissional que trabalha em uma empresa",
+    "empresa": "empresa (PJ)",
+}
+_GOAL_LABEL = {
+    "autoridade": "construir autoridade no tema",
+    "leads": "gerar leads/clientes",
+    "networking": "expandir networking",
+    "recrutamento": "atrair oportunidades/talentos",
+    "marca_empregadora": "fortalecer a marca empregadora",
+}
+
+
+def build_profile_context(profile: dict | None) -> str:
+    """Bloco 'Contexto do autor' anexado ao prompt. Vazio se não houver perfil."""
+    if not profile or not any(profile.values()):
+        return ""
+    lines = ["Contexto do autor (usar para direcionar TODOS os posts):"]
+    if profile.get("entity_type"):
+        lines.append(f"- Atuação: {_ENTITY_LABEL.get(profile['entity_type'], profile['entity_type'])}")
+    if profile.get("role"):
+        lines.append(f"- Profissão/atividade: {profile['role']}")
+    if profile.get("company"):
+        lines.append(f"- Empresa: {profile['company']}")
+    if profile.get("industry"):
+        lines.append(f"- Ramo/segmento: {profile['industry']}")
+    if profile.get("audience"):
+        lines.append(f"- Público-alvo: {profile['audience']}")
+    if profile.get("goal"):
+        lines.append(f"- Objetivo no LinkedIn: {_GOAL_LABEL.get(profile['goal'], profile['goal'])}")
+    if profile.get("tone"):
+        lines.append(f"- Tom de voz: {profile['tone']}")
+    if profile.get("pillars"):
+        lines.append(f"- Pilares de conteúdo: {profile['pillars']}")
+    if profile.get("positioning"):
+        lines.append(f"- Posicionamento/visão de longo prazo: {profile['positioning']}")
+    return "\n".join(lines)
+
+
+def generate_posts(
+    theme: str, instructions: str | None, count: int, language: str,
+    profile: dict | None = None,
+) -> list[dict]:
     s = get_settings()
     client = anthropic.Anthropic(api_key=s.ANTHROPIC_API_KEY)
 
@@ -35,6 +82,9 @@ def generate_posts(theme: str, instructions: str | None, count: int, language: s
         f"Quantidade de posts: {count}\n"
         f"Instruções adicionais do autor: {instructions or 'nenhuma'}"
     )
+    context = build_profile_context(profile)
+    if context:
+        user_prompt = f"{context}\n\n{user_prompt}"
 
     msg = client.messages.create(
         model=s.ANTHROPIC_MODEL,

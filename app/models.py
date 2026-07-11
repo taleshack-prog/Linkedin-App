@@ -132,3 +132,31 @@ class PublishLog(Base):
     http_status: Mapped[int | None] = mapped_column(Integer, nullable=True)
     response: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class BrandProfile(Base):
+    __tablename__ = "brand_profiles"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), unique=True
+    )
+    entity_type: Mapped[str | None] = mapped_column(String, nullable=True)  # autonomo|colaborador|empresa
+    role: Mapped[str | None] = mapped_column(Text, nullable=True)
+    company: Mapped[str | None] = mapped_column(Text, nullable=True)
+    industry: Mapped[str | None] = mapped_column(Text, nullable=True)
+    audience: Mapped[str | None] = mapped_column(Text, nullable=True)
+    goal: Mapped[str | None] = mapped_column(String, nullable=True)
+    tone: Mapped[str | None] = mapped_column(Text, nullable=True)
+    pillars: Mapped[str | None] = mapped_column(Text, nullable=True)
+    positioning: Mapped[str | None] = mapped_column(Text, nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    def to_context_dict(self) -> dict:
+        return {
+            "entity_type": self.entity_type, "role": self.role, "company": self.company,
+            "industry": self.industry, "audience": self.audience, "goal": self.goal,
+            "tone": self.tone, "pillars": self.pillars, "positioning": self.positioning,
+        }

@@ -2,7 +2,7 @@
 import logging
 
 from app.database import SessionLocal
-from app.models import ContentBrief, LinkedInAccount, Post, PostStatus
+from app.models import BrandProfile, ContentBrief, LinkedInAccount, Post, PostStatus
 from app.services.content_generator import generate_posts
 from app.tasks.celery_app import celery
 
@@ -22,11 +22,13 @@ def generate_from_brief(self, brief_id: str, linkedin_account_id: str):
         brief.status = "generating"
         db.commit()
 
+        profile = db.query(BrandProfile).filter_by(user_id=brief.user_id).first()
         posts = generate_posts(
             theme=brief.theme,
             instructions=brief.instructions,
             count=brief.posts_per_week,
             language=brief.language,
+            profile=profile.to_context_dict() if profile else None,
         )
         for p in posts:
             db.add(

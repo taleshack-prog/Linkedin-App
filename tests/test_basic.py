@@ -103,3 +103,26 @@ class TestImageGenerator:
         from app.services.image_generator import ImageGenError, parse_image_response
         with _pytest.raises(ImageGenError):
             parse_image_response({"candidates": [{"content": {"parts": [{"text": "só texto"}]}}]})
+
+
+class TestProfileContext:
+    def test_perfil_vazio_gera_bloco_vazio(self):
+        from app.services.content_generator import build_profile_context
+        assert build_profile_context(None) == ""
+        assert build_profile_context({"role": None, "goal": None}) == ""
+
+    def test_contexto_traduz_atuacao_e_objetivo(self):
+        from app.services.content_generator import build_profile_context
+        ctx = build_profile_context({
+            "entity_type": "autonomo", "role": "eng. de software", "company": "HTF",
+            "industry": "tecnologia", "audience": "fundadores", "goal": "leads",
+            "tone": "direto", "pillars": "IA; automação", "positioning": "jogo infinito",
+        })
+        assert "profissional autônomo(a)" in ctx
+        assert "gerar leads/clientes" in ctx
+        assert "jogo infinito" in ctx and "Contexto do autor" in ctx
+
+    def test_campos_ausentes_sao_omitidos(self):
+        from app.services.content_generator import build_profile_context
+        ctx = build_profile_context({"goal": "autoridade"})
+        assert "Objetivo" in ctx and "Tom de voz" not in ctx and "Empresa" not in ctx

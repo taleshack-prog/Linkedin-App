@@ -5,6 +5,7 @@ import Queue from "./views/Queue.jsx";
 import Calendar from "./views/Calendar.jsx";
 import Briefs from "./views/Briefs.jsx";
 import Accounts from "./views/Accounts.jsx";
+import Profile from "./views/Profile.jsx";
 
 // A navegação É o pipeline: os estágios do post são os itens do menu.
 const STAGES = [
@@ -51,6 +52,9 @@ export default function App() {
         </div>
 
         <div className="stage-label">Produção</div>
+        <button className={`nav ${view === "profile" ? "active" : ""}`} onClick={() => setView("profile")}>
+          Perfil de marca
+        </button>
         <button className={`nav ${view === "briefs" ? "active" : ""}`} onClick={() => setView("briefs")}>
           Pautas
         </button>
@@ -96,6 +100,7 @@ export default function App() {
         {view === "calendar" && <Calendar refreshKey={refreshKey} />}
         {view === "briefs" && <Briefs accounts={accounts} onGenerated={refresh} />}
         {view === "accounts" && <Accounts accounts={accounts} onChanged={refresh} />}
+        {view === "profile" && <Profile />}
       </main>
     </div>
   );

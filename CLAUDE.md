@@ -53,6 +53,7 @@ celery -A app.tasks.celery_app.celery beat -l info
 ```
 
 ## Roadmap
+- [x] Perfil de marca (brand_profiles): contexto do autor injetado em toda geração
 - [ ] MVP single-user (você): OAuth + geração + aprovação + publish
 - [x] Frontend React (Vercel): calendário editorial + fila de aprovação (`frontend/`)
 - [x] Posts com imagem — upload pelo usuário (Images API: initializeUpload -> PUT binário -> content.media.id)
