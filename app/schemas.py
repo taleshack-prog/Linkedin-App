@@ -27,6 +27,7 @@ class PostOut(BaseModel):
     published_at: datetime | None
     linkedin_post_urn: str | None
     last_error: str | None
+    has_image: bool = False
 
 
 class PostUpdate(BaseModel):

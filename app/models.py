@@ -3,11 +3,11 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
-    BigInteger, Boolean, DateTime, Enum, ForeignKey, Integer, SmallInteger, String,
-    Text, UniqueConstraint, func,
+    BigInteger, Boolean, DateTime, Enum, ForeignKey, Integer, LargeBinary,
+    SmallInteger, String, Text, UniqueConstraint, func,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, deferred, mapped_column, relationship
 
 from app.database import Base
 
@@ -89,6 +89,10 @@ class Post(Base):
     commentary: Mapped[str] = mapped_column(Text)
     hashtags: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
     sources: Mapped[list] = mapped_column(JSONB, default=list)
+    # Imagem opcional: blob deferred (listagens não carregam os bytes)
+    image_data: Mapped[bytes | None] = deferred(mapped_column(LargeBinary, nullable=True))
+    image_mime: Mapped[str | None] = mapped_column(String, nullable=True)
+    image_filename: Mapped[str | None] = mapped_column(String, nullable=True)
     status: Mapped[PostStatus] = mapped_column(
         Enum(
             PostStatus,
@@ -108,6 +112,11 @@ class Post(Base):
     )
 
     account: Mapped["LinkedInAccount"] = relationship()
+
+    @property
+    def has_image(self) -> bool:
+        # image_mime funciona como flag — evita tocar o blob deferred
+        return self.image_mime is not None
 
 
 class PublishLog(Base):

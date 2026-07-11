@@ -19,6 +19,7 @@ AUTH_URL = "https://www.linkedin.com/oauth/v2/authorization"
 TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
 USERINFO_URL = "https://api.linkedin.com/v2/userinfo"
 POSTS_URL = "https://api.linkedin.com/rest/posts"
+IMAGES_URL = "https://api.linkedin.com/rest/images"
 
 # Caracteres reservados do formato "little text" do LinkedIn — precisam de escape
 # no campo commentary, senão a API retorna 400 ou renderiza errado.
@@ -97,9 +98,47 @@ def get_userinfo(access_token: str) -> dict:
     return resp.json()
 
 
-def publish_text_post(access_token: str, person_urn: str, commentary: str) -> tuple[str, int, dict]:
-    """Publica post de texto. Retorna (post_urn, http_status, corpo/headers p/ log)."""
+def _versioned_headers(access_token: str) -> dict:
     s = get_settings()
+    return {
+        "Authorization": f"Bearer {access_token}",
+        "LinkedIn-Version": s.LINKEDIN_API_VERSION,
+        "X-Restli-Protocol-Version": "2.0.0",
+        "Content-Type": "application/json",
+    }
+
+
+def initialize_image_upload(access_token: str, person_urn: str) -> tuple[str, str]:
+    """Etapa 1 da Images API: registra o upload. Retorna (upload_url, image_urn)."""
+    resp = httpx.post(
+        f"{IMAGES_URL}?action=initializeUpload",
+        json={"initializeUploadRequest": {"owner": person_urn}},
+        headers=_versioned_headers(access_token),
+        timeout=30,
+    )
+    if resp.status_code != 200:
+        raise LinkedInError(resp.status_code, resp.text)
+    value = resp.json().get("value", {})
+    upload_url, image_urn = value.get("uploadUrl"), value.get("image")
+    if not upload_url or not image_urn:
+        raise LinkedInError(resp.status_code, f"initializeUpload sem uploadUrl/image: {resp.text[:300]}")
+    return upload_url, image_urn
+
+
+def upload_image_binary(upload_url: str, access_token: str, data: bytes) -> None:
+    """Etapa 2: PUT do binário na uploadUrl (201 = sucesso)."""
+    resp = httpx.put(
+        upload_url,
+        content=data,
+        headers={"Authorization": f"Bearer {access_token}"},
+        timeout=60,
+    )
+    if resp.status_code not in (200, 201):
+        raise LinkedInError(resp.status_code, resp.text)
+
+
+def build_post_payload(person_urn: str, commentary: str, image_urn: str | None = None) -> dict:
+    """Payload do POST /rest/posts. Com imagem, referencia o URN em content.media.id."""
     payload = {
         "author": person_urn,
         "commentary": escape_commentary(commentary),
@@ -112,15 +151,20 @@ def publish_text_post(access_token: str, person_urn: str, commentary: str) -> tu
         "lifecycleState": "PUBLISHED",
         "isReshareDisabledByAuthor": False,
     }
+    if image_urn:
+        payload["content"] = {"media": {"id": image_urn}}
+    return payload
+
+
+def publish_text_post(
+    access_token: str, person_urn: str, commentary: str, image_urn: str | None = None
+) -> tuple[str, int, dict]:
+    """Publica post (texto ou texto+imagem). Retorna (post_urn, http_status, meta p/ log)."""
+    payload = build_post_payload(person_urn, commentary, image_urn)
     resp = httpx.post(
         POSTS_URL,
         json=payload,
-        headers={
-            "Authorization": f"Bearer {access_token}",
-            "LinkedIn-Version": s.LINKEDIN_API_VERSION,
-            "X-Restli-Protocol-Version": "2.0.0",
-            "Content-Type": "application/json",
-        },
+        headers=_versioned_headers(access_token),
         timeout=30,
     )
     if resp.status_code != 201:

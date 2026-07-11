@@ -47,6 +47,26 @@ export const api = {
   approvePost: (id, publishAt) =>
     request(`/posts/${id}/approve`, { method: "POST", body: JSON.stringify({ publish_at: publishAt }) }),
   cancelPost: (id) => request(`/posts/${id}/cancel`, { method: "POST" }),
+  uploadPostImage: async (id, file) => {
+    const form = new FormData();
+    form.append("file", file);
+    const resp = await fetch(`${BASE}/posts/${id}/image`, {
+      method: "POST",
+      headers: { "X-API-Key": getApiKey() },   // sem Content-Type: o browser define o boundary
+      body: form,
+    });
+    if (!resp.ok) {
+      const data = await resp.json().catch(() => ({}));
+      throw new Error(data.detail || `Erro ${resp.status}`);
+    }
+    return resp.json();
+  },
+  deletePostImage: (id) => request(`/posts/${id}/image`, { method: "DELETE" }),
+  fetchPostImageBlob: async (id) => {
+    const resp = await fetch(`${BASE}/posts/${id}/image`, { headers: { "X-API-Key": getApiKey() } });
+    if (!resp.ok) throw new Error(`Erro ${resp.status}`);
+    return resp.blob();
+  },
 };
 
 export const STATUS_LABEL = {

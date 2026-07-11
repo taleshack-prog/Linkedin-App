@@ -73,6 +73,9 @@ CREATE TABLE posts (
     commentary           TEXT NOT NULL,                    -- texto final do post (máx ~3000 chars no LinkedIn)
     hashtags             TEXT[] NOT NULL DEFAULT '{}',
     sources              JSONB NOT NULL DEFAULT '[]',      -- URLs usadas na pesquisa (auditoria)
+    image_data           BYTEA,                            -- imagem opcional (upload do usuário)
+    image_mime           TEXT,                             -- image/jpeg | image/png | image/gif
+    image_filename       TEXT,
     status               post_status NOT NULL DEFAULT 'draft',
     publish_at           TIMESTAMPTZ,                      -- obrigatório quando approved
     published_at         TIMESTAMPTZ,

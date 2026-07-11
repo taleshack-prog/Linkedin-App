@@ -1,6 +1,7 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -75,5 +76,63 @@ def cancel_post(
     if post.status not in (PostStatus.draft, PostStatus.approved):
         raise HTTPException(409, "Post já processado")
     post.status = PostStatus.cancelled
+    db.commit()
+    return post
+
+
+# ============ Imagem opcional do post ============
+ALLOWED_IMAGE_MIMES = {"image/jpeg", "image/png", "image/gif"}
+MAX_IMAGE_BYTES = 8 * 1024 * 1024  # 8 MB
+
+
+@router.post("/{post_id}/image", response_model=PostOut)
+async def upload_post_image(
+    post_id: uuid.UUID,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Anexa uma imagem ao post (JPG/PNG/GIF, até 8 MB). Sobe ao LinkedIn só na publicação."""
+    post = _own_post(post_id, db, user)
+    if post.status not in (PostStatus.draft, PostStatus.approved):
+        raise HTTPException(409, "Post não é mais editável")
+    if file.content_type not in ALLOWED_IMAGE_MIMES:
+        raise HTTPException(415, "Formato não suportado — use JPG, PNG ou GIF")
+    data = await file.read()
+    if len(data) > MAX_IMAGE_BYTES:
+        raise HTTPException(413, "Imagem acima de 8 MB")
+    if not data:
+        raise HTTPException(400, "Arquivo vazio")
+    post.image_data = data
+    post.image_mime = file.content_type
+    post.image_filename = file.filename
+    db.commit()
+    return post
+
+
+@router.get("/{post_id}/image")
+def get_post_image(
+    post_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    post = _own_post(post_id, db, user)
+    if not post.image_mime:
+        raise HTTPException(404, "Post sem imagem")
+    return Response(content=post.image_data, media_type=post.image_mime)
+
+
+@router.delete("/{post_id}/image", response_model=PostOut)
+def delete_post_image(
+    post_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    post = _own_post(post_id, db, user)
+    if post.status not in (PostStatus.draft, PostStatus.approved):
+        raise HTTPException(409, "Post não é mais editável")
+    post.image_data = None
+    post.image_mime = None
+    post.image_filename = None
     db.commit()
     return post

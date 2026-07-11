@@ -129,7 +129,16 @@ def publish_post(self, post_id: str):
                 )
 
             token = _ensure_fresh_token(db, account)
-            urn, status_code, meta = li.publish_text_post(token, account.person_urn, commentary)
+
+            # Imagem opcional: sobe para o LinkedIn antes do post (Images API, 2 etapas)
+            image_urn = None
+            if post.image_mime:
+                upload_url, image_urn = li.initialize_image_upload(token, account.person_urn)
+                li.upload_image_binary(upload_url, token, post.image_data)
+
+            urn, status_code, meta = li.publish_text_post(
+                token, account.person_urn, commentary, image_urn=image_urn
+            )
 
             post.status = PostStatus.published
             post.published_at = datetime.now(timezone.utc)

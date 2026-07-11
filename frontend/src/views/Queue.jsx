@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, STATUS_LABEL } from "../api.js";
 
 const MAX = 3000;
@@ -13,6 +13,19 @@ function localToIso(v) {
   return new Date(v).toISOString();
 }
 
+function PostImage({ postId, version }) {
+  const [src, setSrc] = useState(null);
+  useEffect(() => {
+    let url;
+    api.fetchPostImageBlob(postId)
+      .then((blob) => { url = URL.createObjectURL(blob); setSrc(url); })
+      .catch(() => setSrc(null));
+    return () => url && URL.revokeObjectURL(url);
+  }, [postId, version]);
+  if (!src) return null;
+  return <img className="post-image" src={src} alt="Imagem anexada ao post" />;
+}
+
 function PostCard({ post, onChanged }) {
   const [editing, setEditing] = useState(false);
   const [commentary, setCommentary] = useState(post.commentary);
@@ -20,6 +33,8 @@ function PostCard({ post, onChanged }) {
   const [publishAt, setPublishAt] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const fileInput = useRef(null);
+  const [imgVersion, setImgVersion] = useState(0);
 
   const tagList = hashtags.split(/\s+/).filter(Boolean).map((h) => (h.startsWith("#") ? h : `#${h}`));
   const total = commentary.length + (tagList.length ? 2 + tagList.join(" ").length : 0);
@@ -49,6 +64,17 @@ function PostCard({ post, onChanged }) {
 
   const approve = () => run(() => api.approvePost(post.id, localToIso(publishAt)));
   const cancel = () => run(() => api.cancelPost(post.id));
+
+  const uploadImage = (file) =>
+    run(async () => {
+      await api.uploadPostImage(post.id, file);
+      setImgVersion((v) => v + 1);
+    });
+  const removeImage = () =>
+    run(async () => {
+      await api.deletePostImage(post.id);
+      setImgVersion((v) => v + 1);
+    });
 
   return (
     <article className={`card ${post.status}`}>
@@ -88,6 +114,7 @@ function PostCard({ post, onChanged }) {
         </>
       ) : (
         <>
+          {post.has_image && <PostImage postId={post.id} version={imgVersion} />}
           <p className="commentary">{post.commentary}</p>
           {post.hashtags.length > 0 && (
             <div className="tags">{post.hashtags.map((h) => (h.startsWith("#") ? h : `#${h}`)).join(" ")}</div>
@@ -97,6 +124,29 @@ function PostCard({ post, onChanged }) {
               <button className="btn" onClick={() => setEditing(true)} disabled={busy}>
                 Editar
               </button>
+            )}
+            {editable && (
+              <>
+                <input
+                  ref={fileInput}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) uploadImage(f);
+                    e.target.value = "";
+                  }}
+                />
+                <button className="btn" onClick={() => fileInput.current?.click()} disabled={busy}>
+                  {post.has_image ? "Trocar imagem" : "Adicionar imagem"}
+                </button>
+                {post.has_image && (
+                  <button className="btn danger" onClick={removeImage} disabled={busy}>
+                    Remover imagem
+                  </button>
+                )}
+              </>
             )}
             {post.status === "draft" && (
               <>

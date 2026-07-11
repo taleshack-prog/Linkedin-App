@@ -57,3 +57,20 @@ class TestFernetLazy:
         # security foi importado indiretamente sem instanciar Fernet — se
         # chegou aqui, o lazy init funciona.
         import app.security  # noqa: F401
+
+
+class TestPostPayload:
+    def test_payload_sem_imagem_nao_tem_content(self):
+        from app.services.linkedin_client import build_post_payload
+        p = build_post_payload("urn:li:person:X", "texto")
+        assert "content" not in p and p["author"] == "urn:li:person:X"
+
+    def test_payload_com_imagem_referencia_urn(self):
+        from app.services.linkedin_client import build_post_payload
+        p = build_post_payload("urn:li:person:X", "texto", image_urn="urn:li:image:ABC")
+        assert p["content"] == {"media": {"id": "urn:li:image:ABC"}}
+
+    def test_commentary_escapado_no_payload(self):
+        from app.services.linkedin_client import build_post_payload
+        p = build_post_payload("urn:li:person:X", "a(b)")
+        assert p["commentary"] == r"a\(b\)"
