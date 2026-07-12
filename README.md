@@ -88,6 +88,18 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
+## Migrations (Alembic)
+
+O schema é versionado pelo Alembic. Fluxo ao mudar `app/models.py`:
+
+```bash
+docker compose exec api alembic revision --autogenerate -m "descricao da mudanca"
+# revisar o arquivo em alembic/versions/, commitar e dar push
+```
+
+O Railway aplica no deploy (Pre-Deploy Command da api: `alembic upgrade head`).
+Banco pré-existente entra no versionamento com um único `alembic stamp head`.
+
 ## Notas de produção
 
 - Header `LinkedIn-Version` (YYYYMM): versões antigas são descontinuadas pelo

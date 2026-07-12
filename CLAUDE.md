@@ -40,8 +40,11 @@ beat 6h  --> refresh_expiring_tokens (renovação proativa)
 ## Convenções de trabalho
 - Reescrever arquivos inteiros (`cat > arquivo << 'EOF'`), não patches incrementais
 - Heredocs Python: `python3 << 'PYEOF'`, nunca Node (problema com `!`)
-- Migrations: por ora db/schema.sql é a fonte da verdade; introduzir Alembic
-  antes do primeiro cliente pago
+- Migrations: **Alembic é a fonte da verdade** (`alembic upgrade head` roda no
+  pre-deploy do Railway e no boot da api local). Mudou app/models.py? ->
+  `docker compose exec api alembic revision --autogenerate -m "descricao"`,
+  revisar o arquivo gerado, commitar. db/schema.sql e db/migrations/ ficam
+  como referência histórica — NÃO aplicar mais via psql -f
 - Testes de publicação: usar conta LinkedIn de teste, nunca a conta principal
 
 ## Comandos
@@ -59,5 +62,6 @@ celery -A app.tasks.celery_app.celery beat -l info
 - [x] Frontend React (Vercel): calendário editorial + fila de aprovação (`frontend/`)
 - [x] Posts com imagem — upload pelo usuário (Images API: initializeUpload -> PUT binário -> content.media.id)
 - [x] Geração de imagem por IA (Gemini gemini-3.1-flash-image-preview; GEMINI_API_KEY opcional)
+- [x] Alembic (baseline 0001; pre-deploy no Railway)
 - [ ] Billing (Stripe) + auth real (substituir X-API-Key em app/security.py)
 - [ ] w_organization_social (Company Pages) — requer review Marketing API (2-4 semanas)

@@ -5,8 +5,7 @@ services:
     environment:
       POSTGRES_PASSWORD: dev
       POSTGRES_DB: linkpost
-    ports: ["5432:5432"]
-    volumes: ["./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql"]
+    ports: ["5433:5432"]
 
   redis:
     image: redis:7
@@ -14,7 +13,7 @@ services:
 
   api:
     build: .
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     env_file: .env
     volumes: [".:/code"]
     ports: ["8000:8000"]
