@@ -171,6 +171,9 @@ textarea:focus, input:focus, select:focus, button:focus-visible {
 .btn.danger { color: var(--st-failed); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+.check { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-soft); margin-bottom: 14px; cursor: pointer; }
+.check input { width: auto; }
+
 .ai-form { display: flex; gap: 8px; margin-top: 10px; }
 .ai-form input { flex: 1; }
 

@@ -22,7 +22,9 @@ def generate_from_brief(self, brief_id: str, linkedin_account_id: str):
         brief.status = "generating"
         db.commit()
 
-        profile = db.query(BrandProfile).filter_by(user_id=brief.user_id).first()
+        profile = None
+        if brief.use_profile:
+            profile = db.query(BrandProfile).filter_by(user_id=brief.user_id).first()
         posts = generate_posts(
             theme=brief.theme,
             instructions=brief.instructions,

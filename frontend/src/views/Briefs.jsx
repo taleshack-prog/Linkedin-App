@@ -14,6 +14,7 @@ function BriefCard({ brief, onChanged, onRefreshPipeline }) {
   const [theme, setTheme] = useState(brief.theme);
   const [instructions, setInstructions] = useState(brief.instructions || "");
   const [count, setCount] = useState(brief.posts_per_week);
+  const [useProfile, setUseProfile] = useState(brief.use_profile !== false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const generating = brief.status === "generating" || brief.status === "pending";
@@ -26,6 +27,7 @@ function BriefCard({ brief, onChanged, onRefreshPipeline }) {
     run(async () => {
       await api.updateBrief(brief.id, {
         theme, instructions: instructions || null, posts_per_week: count,
+        use_profile: useProfile,
       });
       setEditing(false);
     });
@@ -43,6 +45,7 @@ function BriefCard({ brief, onChanged, onRefreshPipeline }) {
         <span className="mono">{new Date(brief.created_at).toLocaleString("pt-BR")}</span>
         <span className="mono">{brief.posts_per_week} posts</span>
         {brief.source_filename && <span className="mono">📎 {brief.source_filename}</span>}
+        {brief.use_profile === false && <span className="mono">sem perfil de marca</span>}
       </div>
       {error && <div className="error">{error}</div>}
 
@@ -63,6 +66,10 @@ function BriefCard({ brief, onChanged, onRefreshPipeline }) {
               {[1, 2, 3, 4, 5, 6, 7].map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
+          <label className="check">
+            <input type="checkbox" checked={useProfile} onChange={(e) => setUseProfile(e.target.checked)} />
+            Usar Perfil de marca nesta pauta
+          </label>
           <div className="actions">
             <button className="btn primary" onClick={saveEdit} disabled={busy || theme.trim().length < 3}>
               Salvar pauta
@@ -99,6 +106,7 @@ export default function Briefs({ accounts, onGenerated }) {
   const [count, setCount] = useState(3);
   const [accountId, setAccountId] = useState("");
   const [file, setFile] = useState(null);
+  const [useProfile, setUseProfile] = useState(true);
   const fileInput = useRef(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
@@ -130,6 +138,7 @@ export default function Briefs({ accounts, onGenerated }) {
           posts_per_week: count,
           language: "pt-BR",
           linkedin_account_id: accountId,
+          use_profile: useProfile,
         },
         file
       );
@@ -195,6 +204,10 @@ export default function Briefs({ accounts, onGenerated }) {
               </select>
             </div>
           </div>
+          <label className="check">
+            <input type="checkbox" checked={useProfile} onChange={(e) => setUseProfile(e.target.checked)} />
+            Usar Perfil de marca nesta pauta (desligue para posts neutros, sem seu contexto)
+          </label>
           <div className="field">
             <label htmlFor="source">Material de referência — opcional (PDF, DOCX, TXT, MD ou CSV, até 25 MB)</label>
             <input

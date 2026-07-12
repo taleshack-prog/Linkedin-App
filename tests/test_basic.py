@@ -221,3 +221,15 @@ class TestRobustJsonParsing:
         from app.services.content_generator import POSTS_TOOL
         item = POSTS_TOOL["input_schema"]["properties"]["posts"]["items"]
         assert "commentary" in item["required"] and POSTS_TOOL["name"] == "emit_posts"
+
+
+class TestPromptNaoSequestraTema:
+    def test_system_prompt_prioriza_tema_da_pauta(self):
+        from app.services.content_generator import SYSTEM_PROMPT
+        assert "O TEMA DA PAUTA sempre manda" in SYSTEM_PROMPT
+        assert "NUNCA desvie o assunto" in SYSTEM_PROMPT
+
+    def test_cabecalho_do_contexto_reflete_a_regra(self):
+        from app.services.content_generator import build_profile_context
+        ctx = build_profile_context({"pillars": "Web3"})
+        assert "o tema da pauta manda" in ctx

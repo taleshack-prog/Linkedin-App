@@ -26,6 +26,7 @@ class BriefOut(BaseModel):
     language: str
     status: str
     error: str | None
+    use_profile: bool = True
     source_filename: str | None
     created_at: datetime
 
@@ -51,6 +52,7 @@ async def create_brief(
     instructions: str | None = Form(default=None, max_length=2000),
     posts_per_week: int = Form(default=3, ge=1, le=7),
     language: str = Form(default="pt-BR"),
+    use_profile: bool = Form(default=True),
     source_file: UploadFile | None = File(default=None),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
@@ -84,6 +86,7 @@ async def create_brief(
         instructions=instructions or None,
         posts_per_week=posts_per_week,
         language=language,
+        use_profile=use_profile,
         source_text=source_text,
         source_filename=source_filename,
     )
@@ -106,6 +109,7 @@ class BriefUpdate(BaseModel):
     instructions: str | None = None
     posts_per_week: int | None = None
     language: str | None = None
+    use_profile: bool | None = None
 
 
 @router.patch("/{brief_id}", response_model=BriefOut)
@@ -132,6 +136,8 @@ def edit_brief(
         brief.posts_per_week = payload.posts_per_week
     if payload.language is not None:
         brief.language = payload.language
+    if payload.use_profile is not None:
+        brief.use_profile = payload.use_profile
     db.commit()
     return brief
 

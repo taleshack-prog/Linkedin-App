@@ -72,6 +72,7 @@ class ContentBrief(Base):
     theme: Mapped[str] = mapped_column(Text)
     instructions: Mapped[str | None] = mapped_column(Text, nullable=True)
     posts_per_week: Mapped[int] = mapped_column(SmallInteger, default=3)
+    use_profile: Mapped[bool] = mapped_column(Boolean, default=True)
     source_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     source_filename: Mapped[str | None] = mapped_column(Text, nullable=True)
     language: Mapped[str] = mapped_column(String, default="pt-BR")
