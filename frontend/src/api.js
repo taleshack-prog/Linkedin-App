@@ -1,27 +1,42 @@
-// Cliente da API LinkPost. Auth: header X-API-Key (guardada em localStorage).
+// Cliente da API LinkPost.
+// Auth: JWT (Authorization: Bearer) — com fallback legado por X-API-Key na transição.
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
+export function getToken() {
+  return localStorage.getItem("linkpost_token") || "";
+}
+export function setToken(t) {
+  localStorage.setItem("linkpost_token", t);
+}
 export function getApiKey() {
   return localStorage.getItem("linkpost_api_key") || "";
 }
 export function setApiKey(key) {
   localStorage.setItem("linkpost_api_key", key);
 }
-export function clearApiKey() {
+export function clearAuth() {
+  localStorage.removeItem("linkpost_token");
   localStorage.removeItem("linkpost_api_key");
+}
+export function isAuthed() {
+  return Boolean(getToken() || getApiKey());
+}
+export function authHeaders() {
+  const t = getToken();
+  return t ? { Authorization: `Bearer ${t}` } : { "X-API-Key": getApiKey() };
 }
 
 async function request(path, options = {}) {
   const resp = await fetch(`${BASE}${path}`, {
     ...options,
     headers: {
-      "X-API-Key": getApiKey(),
+      ...authHeaders(),
       ...(options.body ? { "Content-Type": "application/json" } : {}),
       ...options.headers,
     },
   });
-  if (resp.status === 401) {
-    clearApiKey();
+  if (resp.status === 401 && !path.startsWith("/auth/")) {
+    clearAuth();
     window.location.reload();
     return null;
   }
@@ -33,11 +48,23 @@ async function request(path, options = {}) {
     } catch { /* corpo não-JSON */ }
     throw new Error(detail);
   }
+  if (resp.status === 204) return null;
   return resp.json();
 }
 
 export const api = {
   health: () => request("/health"),
+  // ---- auth ----
+  register: (email, password, name, ref) =>
+    request("/auth/register", { method: "POST", body: JSON.stringify({ email, password, name: name || null, ref: ref || null }) }),
+  login: (email, password) =>
+    request("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
+  loginGoogle: (credential, ref) =>
+    request("/auth/google", { method: "POST", body: JSON.stringify({ credential, ref: ref || null }) }),
+  setPassword: (password) =>
+    request("/auth/set-password", { method: "POST", body: JSON.stringify({ password }) }),
+  me: () => request("/auth/me"),
+  // ---- app ----
   accounts: () => request("/accounts"),
   getProfile: () => request("/profile"),
   saveProfile: (payload) => request("/profile", { method: "PUT", body: JSON.stringify(payload) }),
@@ -45,22 +72,12 @@ export const api = {
   briefs: () => request("/briefs"),
   updateBrief: (id, payload) => request(`/briefs/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   regenerateBrief: (id) => request(`/briefs/${id}/regenerate`, { method: "POST" }),
-  deleteBrief: async (id) => {
-    const resp = await fetch(`${BASE}/briefs/${id}`, { method: "DELETE", headers: { "X-API-Key": getApiKey() } });
-    if (!resp.ok && resp.status !== 204) {
-      const data = await resp.json().catch(() => ({}));
-      throw new Error(typeof data.detail === "string" ? data.detail : `Erro ${resp.status}`);
-    }
-  },
+  deleteBrief: (id) => request(`/briefs/${id}`, { method: "DELETE" }),
   createBrief: async (payload, file) => {
     const form = new FormData();
     Object.entries(payload).forEach(([k, v]) => v != null && form.append(k, v));
     if (file) form.append("source_file", file);
-    const resp = await fetch(`${BASE}/briefs`, {
-      method: "POST",
-      headers: { "X-API-Key": getApiKey() },   // Content-Type: o browser define o boundary
-      body: form,
-    });
+    const resp = await fetch(`${BASE}/briefs`, { method: "POST", headers: authHeaders(), body: form });
     if (!resp.ok) {
       const data = await resp.json().catch(() => ({}));
       throw new Error(typeof data.detail === "string" ? data.detail : `Erro ${resp.status}`);
@@ -72,28 +89,21 @@ export const api = {
   approvePost: (id, publishAt) =>
     request(`/posts/${id}/approve`, { method: "POST", body: JSON.stringify({ publish_at: publishAt }) }),
   cancelPost: (id) => request(`/posts/${id}/cancel`, { method: "POST" }),
+  generatePostImage: (id, instructions) =>
+    request(`/posts/${id}/generate-image`, { method: "POST", body: JSON.stringify({ instructions: instructions || null }) }),
+  deletePostImage: (id) => request(`/posts/${id}/image`, { method: "DELETE" }),
   uploadPostImage: async (id, file) => {
     const form = new FormData();
     form.append("file", file);
-    const resp = await fetch(`${BASE}/posts/${id}/image`, {
-      method: "POST",
-      headers: { "X-API-Key": getApiKey() },   // sem Content-Type: o browser define o boundary
-      body: form,
-    });
+    const resp = await fetch(`${BASE}/posts/${id}/image`, { method: "POST", headers: authHeaders(), body: form });
     if (!resp.ok) {
       const data = await resp.json().catch(() => ({}));
       throw new Error(data.detail || `Erro ${resp.status}`);
     }
     return resp.json();
   },
-  deletePostImage: (id) => request(`/posts/${id}/image`, { method: "DELETE" }),
-  generatePostImage: (id, instructions) =>
-    request(`/posts/${id}/generate-image`, {
-      method: "POST",
-      body: JSON.stringify({ instructions: instructions || null }),
-    }),
   fetchPostImageBlob: async (id) => {
-    const resp = await fetch(`${BASE}/posts/${id}/image`, { headers: { "X-API-Key": getApiKey() } });
+    const resp = await fetch(`${BASE}/posts/${id}/image`, { headers: authHeaders() });
     if (!resp.ok) throw new Error(`Erro ${resp.status}`);
     return resp.blob();
   },

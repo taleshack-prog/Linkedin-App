@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { api, getApiKey, clearApiKey } from "./api.js";
+import { api, clearAuth, isAuthed } from "./api.js";
 import Login from "./views/Login.jsx";
 import Queue from "./views/Queue.jsx";
 import Calendar from "./views/Calendar.jsx";
@@ -16,7 +16,7 @@ const STAGES = [
 ];
 
 export default function App() {
-  const [authed, setAuthed] = useState(Boolean(getApiKey()));
+  const [authed, setAuthed] = useState(isAuthed());
   const [view, setView] = useState("draft");
   const [counts, setCounts] = useState({});
   const [accounts, setAccounts] = useState([]);
@@ -84,7 +84,7 @@ export default function App() {
         </button>
 
         <div className="foot">
-          <button onClick={() => { clearApiKey(); setAuthed(false); }}>Sair</button>
+          <button onClick={() => { clearAuth(); setAuthed(false); }}>Sair</button>
         </div>
       </nav>
 

@@ -63,5 +63,7 @@ celery -A app.tasks.celery_app.celery beat -l info
 - [x] Posts com imagem — upload pelo usuário (Images API: initializeUpload -> PUT binário -> content.media.id)
 - [x] Geração de imagem por IA (Gemini gemini-3.1-flash-image-preview; GEMINI_API_KEY opcional)
 - [x] Alembic (baseline 0001; pre-deploy no Railway)
-- [ ] Billing (Stripe) + auth real (substituir X-API-Key em app/security.py)
+- [x] Auth real: JWT (e-mail/senha via bcrypt + Google Sign-In) com transição do X-API-Key;
+      alicerces de indicação (referral_code/referred_by) — crédito de meses na fase Stripe
+- [ ] Billing (Stripe) + gamificação de indicação (3 assinantes = 1 mês; só conta assinatura paga)
 - [ ] w_organization_social (Company Pages) — requer review Marketing API (2-4 semanas)

@@ -233,3 +233,19 @@ class TestPromptNaoSequestraTema:
         from app.services.content_generator import build_profile_context
         ctx = build_profile_context({"pillars": "Web3"})
         assert "o tema da pauta manda" in ctx
+
+
+class TestAuthJWT:
+    def test_bcrypt_hash_e_verificacao(self):
+        from app.security import hash_password, verify_password
+        h = hash_password("minhasenha123")
+        assert h != "minhasenha123" and verify_password("minhasenha123", h)
+        assert not verify_password("errada", h)
+
+    def test_jwt_roundtrip_e_token_invalido(self):
+        import pytest as _pytest
+        from fastapi import HTTPException
+        from app.security import create_token, decode_token
+        assert decode_token(create_token("abc-123")) == "abc-123"
+        with _pytest.raises(HTTPException):
+            decode_token("token.invalido.aqui")

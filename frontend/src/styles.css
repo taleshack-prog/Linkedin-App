@@ -235,6 +235,8 @@ textarea:focus, input:focus, select:focus, button:focus-visible {
 }
 .login .box { background: var(--surface); border-radius: 14px; padding: 36px; width: min(420px, 92vw); }
 .login h1 { font-size: 24px; margin-bottom: 4px; }
+.login-alt { margin-top: 16px; font-size: 13.5px; color: var(--ink-soft); text-align: center; }
+.login-alt button { background: none; border: none; color: var(--action); padding: 0; font-size: 13.5px; text-decoration: underline; cursor: pointer; }
 .login p { color: var(--ink-soft); margin: 0 0 20px; }
 
 @media (max-width: 760px) {

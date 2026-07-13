@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     OPENAI_IMAGE_MODEL: str = "gpt-image-1-mini"
     OPENAI_IMAGE_QUALITY: str = "medium"                # low | medium | high
 
+    # Auth (JWT + Google Sign-In)
+    JWT_EXPIRE_DAYS: int = 7
+    GOOGLE_CLIENT_ID: str = ""                        # OAuth client do Google Cloud (vazio = botão desligado)
+
     # Publicação
     PUBLISH_SCAN_INTERVAL_SECONDS: int = 60
     MAX_PUBLISH_ATTEMPTS: int = 3
