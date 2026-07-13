@@ -11,6 +11,7 @@ from app.models import Post, PostStatus, User
 from app.schemas import PostApprove, PostOut, PostUpdate
 from app.security import get_current_user
 from app.services import image_generator
+from app.services.plans import require_feature
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -160,6 +161,8 @@ def generate_post_image(
     post = _own_post(post_id, db, user)
     if post.status not in (PostStatus.draft, PostStatus.approved):
         raise HTTPException(409, "Post não é mais editável")
+    if not require_feature(user, "ai_images"):
+        raise HTTPException(402, "Geração de imagem por IA está disponível no plano Pro")
     instructions = payload.instructions if payload else None
     try:
         data, mime = image_generator.generate_post_image(post.commentary, instructions)

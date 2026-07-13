@@ -53,6 +53,14 @@ def callback(code: str, state: str, db: Session = Depends(get_db)):
         .first()
     )
     if not account:
+        from app.services.plans import plan_of
+
+        owner = db.get(User, uuidlib.UUID(user_id))
+        limit = plan_of(owner).linkedin_accounts
+        current = db.query(LinkedInAccount).filter_by(user_id=uuidlib.UUID(user_id)).count()
+        if current >= limit:
+            frontend = get_settings().FRONTEND_ORIGINS.split(",")[0].strip()
+            return RedirectResponse(url=f"{frontend}/?linkedin=limit")
         account = LinkedInAccount(user_id=uuidlib.UUID(user_id), person_urn=person_urn)
         db.add(account)
 

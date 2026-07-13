@@ -249,3 +249,30 @@ class TestAuthJWT:
         assert decode_token(create_token("abc-123")) == "abc-123"
         with _pytest.raises(HTTPException):
             decode_token("token.invalido.aqui")
+
+
+class TestPlansAndReferrals:
+    def test_escada_de_meses(self):
+        from app.services.plans import months_earned
+        assert [months_earned(n) for n in (0, 2, 3, 9, 10, 15, 16, 50)] == [0, 0, 1, 1, 6, 6, 12, 12]
+
+    def test_gating_por_plano(self):
+        from app.services.plans import PLANS
+        assert PLANS["starter"].ai_images is False and PLANS["starter"].doc_upload is False
+        assert PLANS["pro"].ai_images is True and PLANS["pro"].doc_upload is True
+        assert PLANS["free"].linkedin_accounts == 1 and PLANS["agency"].linkedin_accounts == 10
+
+    def test_plano_expirado_vira_free(self):
+        from datetime import datetime, timezone
+        from app.services.plans import plan_of
+        class U:
+            plan = "pro"
+            plan_until = datetime(2020, 1, 1, tzinfo=timezone.utc)
+        assert plan_of(U()).key == "free"
+
+    def test_plano_sem_validade_vale(self):
+        from app.services.plans import plan_of
+        class U:
+            plan = "starter"
+            plan_until = None
+        assert plan_of(U()).key == "starter"

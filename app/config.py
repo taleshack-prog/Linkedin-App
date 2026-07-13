@@ -37,6 +37,15 @@ class Settings(BaseSettings):
     JWT_EXPIRE_DAYS: int = 7
     GOOGLE_CLIENT_ID: str = ""                        # OAuth client do Google Cloud (vazio = botão desligado)
 
+    # Stripe (billing)
+    STRIPE_SECRET_KEY: str = ""
+    STRIPE_WEBHOOK_SECRET: str = ""
+    STRIPE_PRICE_STARTER: str = ""       # price_... do plano Starter (R$37)
+    STRIPE_PRICE_PRO: str = ""           # price_... do plano Pro (R$87)
+    STRIPE_PRICE_AGENCY: str = ""        # price_... do plano Agency (R$257)
+    TRIAL_DAYS: int = 5
+    FRONTEND_APP_URL: str = "http://localhost:5173"   # p/ redirect pós-checkout
+
     # Publicação
     PUBLISH_SCAN_INTERVAL_SECONDS: int = 60
     MAX_PUBLISH_ATTEMPTS: int = 3

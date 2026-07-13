@@ -6,6 +6,7 @@ import Calendar from "./views/Calendar.jsx";
 import Briefs from "./views/Briefs.jsx";
 import Accounts from "./views/Accounts.jsx";
 import Profile from "./views/Profile.jsx";
+import Billing from "./views/Billing.jsx";
 
 // A navegação É o pipeline: os estágios do post são os itens do menu.
 const STAGES = [
@@ -82,6 +83,9 @@ export default function App() {
         <button className={`nav ${view === "accounts" ? "active" : ""}`} onClick={() => setView("accounts")}>
           Conta
         </button>
+        <button className={`nav ${view === "billing" ? "active" : ""}`} onClick={() => setView("billing")}>
+          Planos
+        </button>
 
         <div className="foot">
           <button onClick={() => { clearAuth(); setAuthed(false); }}>Sair</button>
@@ -101,6 +105,7 @@ export default function App() {
         {view === "briefs" && <Briefs accounts={accounts} onGenerated={refresh} />}
         {view === "accounts" && <Accounts accounts={accounts} onChanged={refresh} />}
         {view === "profile" && <Profile />}
+        {view === "billing" && <Billing />}
       </main>
     </div>
   );

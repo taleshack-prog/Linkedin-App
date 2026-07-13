@@ -250,3 +250,34 @@ textarea:focus, input:focus, select:focus, button:focus-visible {
 @media (prefers-reduced-motion: no-preference) {
   .btn, .rail button.nav { transition: background 0.15s ease, border-color 0.15s ease; }
 }
+
+
+/* ===== Planos ===== */
+.plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+.plan-card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 20px; position: relative; display: flex; flex-direction: column;
+}
+.plan-card.featured { border-color: var(--action); border-width: 2px; }
+.plan-badge {
+  position: absolute; top: -10px; left: 20px; background: var(--action); color: #fff;
+  font-family: var(--font-mono); font-size: 11px; padding: 2px 10px; border-radius: 20px;
+}
+.plan-card h3 { font-size: 18px; margin-bottom: 6px; }
+.plan-price { font-family: var(--font-display); font-size: 30px; font-weight: 700; margin-bottom: 14px; }
+.plan-price span { font-size: 14px; font-weight: 400; color: var(--ink-soft); }
+.plan-features { list-style: none; padding: 0; margin: 0 0 16px; flex: 1; }
+.plan-features li { font-size: 13.5px; padding: 4px 0 4px 22px; position: relative; }
+.plan-features li.on::before { content: "✓"; position: absolute; left: 0; color: var(--st-published); font-weight: 700; }
+.plan-features li.off { color: var(--st-muted); }
+.plan-features li.off::before { content: "—"; position: absolute; left: 0; color: var(--st-muted); }
+
+/* ===== Escada de indicação ===== */
+.ref-ladder { display: flex; gap: 10px; }
+.ref-step {
+  flex: 1; text-align: center; border: 1.5px dashed var(--line); border-radius: 8px; padding: 12px 6px;
+}
+.ref-step.reached { border-style: solid; border-color: var(--st-published); background: var(--st-published-bg); }
+.ref-n { font-family: var(--font-display); font-size: 24px; font-weight: 700; }
+.ref-m { font-size: 12px; color: var(--ink-soft); }
+.ref-step.reached .ref-m { color: var(--st-published); }

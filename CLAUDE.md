@@ -65,5 +65,9 @@ celery -A app.tasks.celery_app.celery beat -l info
 - [x] Alembic (baseline 0001; pre-deploy no Railway)
 - [x] Auth real: JWT (e-mail/senha via bcrypt + Google Sign-In) com transição do X-API-Key;
       alicerces de indicação (referral_code/referred_by) — crédito de meses na fase Stripe
-- [ ] Billing (Stripe) + gamificação de indicação (3 assinantes = 1 mês; só conta assinatura paga)
+- [x] Billing (Stripe): 3 planos BRL (Starter 37/Pro 87/Agency 257), trial 5 dias,
+      Checkout + webhook (fonte da verdade) + portal; gating de features por plano
+- [x] Gamificação de indicação: escada 3/10/16 -> 1/6/12 meses; só conta indicado
+      que vira assinante pago; crédito idempotente (services/referrals.py)
+- [ ] LGPD: política de privacidade + exclusão de conta/dados
 - [ ] w_organization_social (Company Pages) — requer review Marketing API (2-4 semanas)

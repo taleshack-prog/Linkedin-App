@@ -16,3 +16,4 @@ alembic>=1.13
 pyjwt>=2.8
 bcrypt>=4.1
 google-auth>=2.30
+stripe>=9.0

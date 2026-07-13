@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import ContentBrief, LinkedInAccount, User
 from app.security import get_current_user
+from app.services.plans import require_feature
 from app.services.text_extractor import ExtractionError, extract_text
 from app.tasks.generation_tasks import generate_from_brief
 
@@ -70,6 +71,8 @@ async def create_brief(
     source_text = None
     source_filename = None
     if source_file is not None and source_file.filename:
+        if not require_feature(user, "doc_upload"):
+            raise HTTPException(402, "Material de referência (upload) está disponível no plano Pro")
         data = await source_file.read()
         if len(data) > MAX_SOURCE_FILE_BYTES:
             raise HTTPException(413, "Arquivo acima de 25 MB")

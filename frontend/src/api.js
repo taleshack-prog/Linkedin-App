@@ -64,6 +64,10 @@ export const api = {
   setPassword: (password) =>
     request("/auth/set-password", { method: "POST", body: JSON.stringify({ password }) }),
   me: () => request("/auth/me"),
+  billingStatus: () => request("/billing/status"),
+  billingPlans: () => request("/billing/plans"),
+  checkout: (plan) => request("/billing/checkout", { method: "POST", body: JSON.stringify({ plan }) }),
+  billingPortal: () => request("/billing/portal", { method: "POST" }),
   // ---- app ----
   accounts: () => request("/accounts"),
   getProfile: () => request("/profile"),
