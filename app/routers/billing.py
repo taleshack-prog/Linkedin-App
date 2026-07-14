@@ -15,7 +15,7 @@ from app.database import get_db
 from app.models import User
 from app.security import get_current_user
 from app.services import referrals
-from app.services.plans import PLANS, REFERRAL_TIERS, plan_of
+from app.services.plans import PLANS, REFERRAL_TIERS, REFERRED_BONUS_DAYS, plan_of
 from app.services.referrals import count_active_referrals
 
 router = APIRouter(prefix="/billing", tags=["billing"])
@@ -53,7 +53,8 @@ def list_plans():
             for p in PLANS.values() if p.key != "free"
         ],
         "referral_tiers": [{"referrals": t, "months": m} for t, m in REFERRAL_TIERS],
-        "trial_days": get_settings().TRIAL_DAYS,
+        "referred_bonus_days": REFERRED_BONUS_DAYS,
+        "guarantee_days": get_settings().GUARANTEE_DAYS,
     }
 
 
@@ -110,7 +111,6 @@ def create_checkout(
         customer=user.stripe_customer_id,
         line_items=[{"price": price, "quantity": 1}],
         subscription_data={
-            "trial_period_days": s.TRIAL_DAYS,
             "metadata": {"user_id": str(user.id), "plan": payload.plan},
         },
         metadata={"user_id": str(user.id), "plan": payload.plan},

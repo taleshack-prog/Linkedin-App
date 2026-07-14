@@ -79,7 +79,7 @@ export default function Login({ onLogin }) {
             : "Entre para abrir a mesa editorial."}
         </p>
         {ref && mode === "register" && (
-          <div className="notice">Você foi indicado(a) — o convite será vinculado à sua conta.</div>
+          <div className="notice">Você foi indicado(a) — ao assinar, você ganha 15 dias extras de presente.</div>
         )}
         {error && <div className="notice err">{error}</div>}
 

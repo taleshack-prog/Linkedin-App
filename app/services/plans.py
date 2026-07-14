@@ -20,12 +20,15 @@ class Plan:
 
 PLANS: dict[str, Plan] = {
     "free":    Plan("free",    "Gratuito", 0,   linkedin_accounts=1,  ai_images=False, doc_upload=False, brand_profile=False),
-    "starter": Plan("starter", "Starter",  37,  linkedin_accounts=1,  ai_images=False, doc_upload=False, brand_profile=True),
-    "pro":     Plan("pro",     "Pro",      87,  linkedin_accounts=2,  ai_images=True,  doc_upload=True,  brand_profile=True),
-    "agency":  Plan("agency",  "Agency",   257, linkedin_accounts=10, ai_images=True,  doc_upload=True,  brand_profile=True),
+    "starter": Plan("starter", "Starter",  20,  linkedin_accounts=1,  ai_images=False, doc_upload=False, brand_profile=True),
+    "pro":     Plan("pro",     "Pro",      40,  linkedin_accounts=2,  ai_images=True,  doc_upload=True,  brand_profile=True),
+    "agency":  Plan("agency",  "Agency",   100, linkedin_accounts=10, ai_images=True,  doc_upload=True,  brand_profile=True),
 }
 
-# Recompensa de indicação: nº de indicados-assinantes -> meses de crédito (acumulados)
+# Bônus do INDICADO: dias extras ao assinar via link de indicação
+REFERRED_BONUS_DAYS = 15
+
+# Recompensa do PADRINHO: nº de indicados-assinantes -> meses de crédito (acumulados)
 # Escada do Tales: 3 -> 1 mês, 10 -> 6 meses, 16 -> 12 meses.
 REFERRAL_TIERS = [(3, 1), (10, 6), (16, 12)]
 

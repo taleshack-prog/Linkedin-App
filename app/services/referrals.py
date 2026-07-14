@@ -15,7 +15,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 
 from app.models import User
-from app.services.plans import months_earned
+from app.services.plans import REFERRED_BONUS_DAYS, months_earned
 
 
 def count_active_referrals(db: Session, referrer_id) -> int:
@@ -52,6 +52,10 @@ def on_referred_user_subscribed(db: Session, user: User) -> None:
     if user.referral_active or not user.referred_by:
         return
     user.referral_active = True
+    # Bônus do indicado: +15 dias na primeira assinatura (o flip de referral_active
+    # acima garante que isso roda UMA vez, mesmo com webhooks repetidos)
+    if user.plan_until:
+        user.plan_until = user.plan_until + timedelta(days=REFERRED_BONUS_DAYS)
     db.commit()
     referrer = db.get(User, user.referred_by)
     if referrer:

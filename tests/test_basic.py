@@ -261,6 +261,7 @@ class TestPlansAndReferrals:
         assert PLANS["starter"].ai_images is False and PLANS["starter"].doc_upload is False
         assert PLANS["pro"].ai_images is True and PLANS["pro"].doc_upload is True
         assert PLANS["free"].linkedin_accounts == 1 and PLANS["agency"].linkedin_accounts == 10
+        assert [PLANS[k].price_brl for k in ("starter", "pro", "agency")] == [20, 40, 100]
 
     def test_plano_expirado_vira_free(self):
         from datetime import datetime, timezone
@@ -276,3 +277,9 @@ class TestPlansAndReferrals:
             plan = "starter"
             plan_until = None
         assert plan_of(U()).key == "starter"
+
+
+class TestReferredBonus:
+    def test_bonus_do_indicado_definido(self):
+        from app.services.plans import REFERRED_BONUS_DAYS
+        assert REFERRED_BONUS_DAYS == 15

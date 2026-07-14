@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     STRIPE_PRICE_STARTER: str = ""       # price_... do plano Starter (R$37)
     STRIPE_PRICE_PRO: str = ""           # price_... do plano Pro (R$87)
     STRIPE_PRICE_AGENCY: str = ""        # price_... do plano Agency (R$257)
-    TRIAL_DAYS: int = 5
+    GUARANTEE_DAYS: int = 7                           # garantia de devolução (CDC art.49: mínimo 7)
     FRONTEND_APP_URL: str = "http://localhost:5173"   # p/ redirect pós-checkout
 
     # Publicação

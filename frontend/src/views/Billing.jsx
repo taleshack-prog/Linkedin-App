@@ -15,13 +15,14 @@ export default function Billing() {
   const [plans, setPlans] = useState(null);
   const [status, setStatus] = useState(null);
   const [tiers, setTiers] = useState([]);
-  const [trialDays, setTrialDays] = useState(5);
+  const [guaranteeDays, setGuaranteeDays] = useState(7);
+  const [bonusDays, setBonusDays] = useState(15);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    api.billingPlans().then((d) => { setPlans(d.plans); setTiers(d.referral_tiers); setTrialDays(d.trial_days); }).catch((e) => setError(e.message));
+    api.billingPlans().then((d) => { setPlans(d.plans); setTiers(d.referral_tiers); setGuaranteeDays(d.guarantee_days); setBonusDays(d.referred_bonus_days); }).catch((e) => setError(e.message));
     api.billingStatus().then(setStatus).catch(() => {});
   }, []);
 
@@ -49,7 +50,10 @@ export default function Billing() {
     <>
       <header>
         <h2>Planos e indicação</h2>
-        <p>Assine para publicar sem limites. Indique e ganhe meses grátis.</p>
+        <p>
+          Assine para publicar sem limites — com garantia de {guaranteeDays} dias:
+          não gostou, devolvemos seu dinheiro. Indique e ganhe meses grátis.
+        </p>
       </header>
       {error && <div className="notice err">{error}</div>}
 
@@ -87,7 +91,7 @@ export default function Billing() {
             </ul>
             <button className="btn primary" style={{ width: "100%" }} onClick={() => subscribe(p.key)}
               disabled={busy === p.key || (isPaid && status.plan === p.key)}>
-              {isPaid && status.plan === p.key ? "Plano atual" : busy === p.key ? "Redirecionando…" : `Assinar · ${trialDays} dias grátis`}
+              {isPaid && status.plan === p.key ? "Plano atual" : busy === p.key ? "Redirecionando…" : "Assinar agora"}
             </button>
           </div>
         ))}
@@ -98,7 +102,8 @@ export default function Billing() {
         {isPaid ? (
           <>
             <p style={{ marginTop: 0, color: "var(--ink-soft)" }}>
-              Compartilhe seu link. A cada amigo que <strong>assinar</strong>, você sobe na escada:
+              Compartilhe seu link: quem assinar por ele <strong>ganha {bonusDays} dias extras</strong> —
+              e a cada amigo assinante, você sobe na escada:
             </p>
             <div className="ref-ladder">
               {tiers.map((t) => (
