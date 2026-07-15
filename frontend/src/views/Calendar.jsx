@@ -47,6 +47,8 @@ export default function Calendar({ refreshKey }) {
     const d = new Date(cursor.y, cursor.m + delta);
     setCursor({ y: d.getFullYear(), m: d.getMonth() });
   };
+  const goToday = () => setCursor({ y: today.getFullYear(), m: today.getMonth() });
+  const isCurrentMonth = cursor.y === today.getFullYear() && cursor.m === today.getMonth();
 
   return (
     <>
@@ -59,6 +61,11 @@ export default function Calendar({ refreshKey }) {
         <button className="btn" onClick={() => move(-1)} aria-label="Mês anterior">←</button>
         <h3>{monthName}</h3>
         <button className="btn" onClick={() => move(1)} aria-label="Próximo mês">→</button>
+        {!isCurrentMonth && (
+          <button className="btn primary" onClick={goToday}>Hoje</button>
+        )}
+        <span className="spacer" />
+        <span className="mono">{posts.length} {posts.length === 1 ? "post" : "posts"} no total</span>
       </div>
       <div className="cal-grid">
         {DOW.map((d) => (

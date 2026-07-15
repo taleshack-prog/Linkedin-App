@@ -193,9 +193,14 @@ textarea:focus, input:focus, select:focus, button:focus-visible {
 .notice.err { background: var(--st-failed-bg); color: var(--st-failed); }
 
 /* ===== Calendário ===== */
-.cal-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
-.cal-head h3 { font-size: 18px; text-transform: capitalize; min-width: 190px; }
-.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.cal-head {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;
+  position: sticky; top: 0; background: var(--bg); padding: 6px 0; z-index: 2;
+}
+.cal-head .btn { padding: 6px 12px; }
+.cal-head .spacer { flex: 1; }
+.cal-head h3 { font-size: 18px; text-transform: capitalize; min-width: 170px; text-align: center; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
 .cal-dow { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; color: var(--ink-soft); text-align: center; padding: 4px 0; }
 .cal-day {
   background: var(--surface);
@@ -204,6 +209,8 @@ textarea:focus, input:focus, select:focus, button:focus-visible {
   min-height: 92px;
   padding: 6px;
   font-size: 12px;
+  min-width: 0;        /* permite encolher: sem isso o conteúdo dita a largura */
+  overflow: hidden;    /* nada escapa da célula */
 }
 .cal-day.out { background: transparent; border-style: dashed; opacity: 0.55; }
 .cal-day.today { border-color: var(--action); border-width: 2px; }
@@ -211,6 +218,8 @@ textarea:focus, input:focus, select:focus, button:focus-visible {
 .cal-post {
   display: block;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   text-align: left;
   border: none;
   border-radius: 5px;
