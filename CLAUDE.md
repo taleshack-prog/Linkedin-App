@@ -70,8 +70,12 @@ Feature do plano Pro+ (`text_formatting`).
   vive em `items.data[].current_period_end`. Também moveu `invoice.subscription`
   para `invoice.parent.subscription_details.subscription`. Os helpers
   `_period_end()` e `_subscription_id_from_invoice()` leem os DOIS formatos.
+- StripeObject (lib v15+) NÃO herda de dict e NÃO tem .get(): usar o acessor
+  `_g(obj, campo, default)` em tudo que vem do Stripe. Testar com dict puro não
+  reproduz produção — os testes usam StripeObject.construct_from().
 - Sintoma quando quebra: pagamento aprovado (tela verde) mas plano não muda —
-  a webhook estoura 500. Diagnóstico: Workbench > Webhooks > Tentativas.
+  a webhook estoura 500. Diagnóstico: Workbench > Webhooks > Tentativas + logs
+  da api no Railway.
 
 ## Roadmap
 - [x] Pauta com material de referência (PDF/DOCX/TXT/MD/CSV -> texto extraído no prompt)

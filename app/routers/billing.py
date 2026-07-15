@@ -169,11 +169,26 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(defaul
         _handle_event(db, stripe, event)
     except Exception:
         # Log completo p/ diagnóstico; erro 500 faz o Stripe reenviar o evento
-        log.exception("Falha ao processar webhook %s", event.get("type"))
+        log.exception("Falha ao processar webhook %s", _g(event, "type"))
         raise
     finally:
         db.close()
     return {"received": True}
+
+
+def _g(obj, key, default=None):
+    """Acesso seguro a campos do Stripe.
+
+    A lib entrega StripeObject, que NÃO herda de dict e NÃO tem .get() (v15+).
+    Este acessor funciona com StripeObject (via getattr) e com dict puro
+    (usado nos testes) — a divergência entre os dois foi o que deixou o bug
+    'AttributeError: get' passar dos testes para a produção.
+    """
+    if obj is None:
+        return default
+    if isinstance(obj, dict):
+        return obj.get(key, default)
+    return getattr(obj, key, default)
 
 
 def _period_end(sub) -> datetime | None:
@@ -183,22 +198,22 @@ def _period_end(sub) -> datetime | None:
     moveu para os items (items.data[].current_period_end). Lemos dos dois lugares
     para funcionar em qualquer versão de API configurada na webhook.
     """
-    ts = sub.get("current_period_end")
+    ts = _g(sub, "current_period_end")
     if not ts:
-        items = (sub.get("items") or {}).get("data") or []
-        ts = next((i.get("current_period_end") for i in items if i.get("current_period_end")), None)
+        items = _g(_g(sub, "items"), "data") or []
+        ts = next((_g(i, "current_period_end") for i in items if _g(i, "current_period_end")), None)
     return datetime.fromtimestamp(ts, tz=timezone.utc) if ts else None
 
 
 def _subscription_id_from_invoice(inv) -> str | None:
     """ID da assinatura numa invoice. Basil moveu invoice.subscription para
     invoice.parent.subscription_details.subscription."""
-    sub = inv.get("subscription")
+    sub = _g(inv, "subscription")
     if sub:
-        return sub if isinstance(sub, str) else sub.get("id")
-    details = (inv.get("parent") or {}).get("subscription_details") or {}
-    sub = details.get("subscription")
-    return sub if isinstance(sub, str) else (sub or {}).get("id")
+        return sub if isinstance(sub, str) else _g(sub, "id")
+    details = _g(_g(inv, "parent"), "subscription_details")
+    sub = _g(details, "subscription")
+    return sub if isinstance(sub, str) else _g(sub, "id")
 
 
 def _user_by_customer(db: Session, customer_id: str) -> User | None:
@@ -208,17 +223,19 @@ def _user_by_customer(db: Session, customer_id: str) -> User | None:
 
 
 def _handle_event(db, stripe, event) -> None:
-    etype = event["type"]
-    obj = event["data"]["object"]
+    etype = _g(event, "type")
+    obj = _g(_g(event, "data"), "object")
 
     if etype == "checkout.session.completed":
-        user = _user_by_customer(db, obj.get("customer"))
-        plan = (obj.get("metadata") or {}).get("plan")
+        customer = _g(obj, "customer")
+        user = _user_by_customer(db, customer)
+        plan = _g(_g(obj, "metadata"), "plan")
         if not user:
-            log.warning("Webhook %s: cliente %s sem usuário local", etype, obj.get("customer"))
+            log.warning("Webhook %s: cliente %s sem usuário local", etype, customer)
             return
-        if plan and obj.get("subscription"):
-            sub = stripe.Subscription.retrieve(obj["subscription"])
+        sub_id = _g(obj, "subscription")
+        if plan and sub_id:
+            sub = stripe.Subscription.retrieve(sub_id)
             _grant(db, user, plan, _period_end(sub))
             log.info("Assinatura provisionada: user=%s plano=%s", user.email, plan)
 
@@ -231,14 +248,14 @@ def _handle_event(db, stripe, event) -> None:
             if not sub_id:
                 return  # invoice avulsa, sem assinatura
             sub = stripe.Subscription.retrieve(sub_id)
-        user = _user_by_customer(db, sub.get("customer"))
-        if user and sub.get("status") in ("active", "trialing"):
-            plan = (sub.get("metadata") or {}).get("plan") or user.plan
+        user = _user_by_customer(db, _g(sub, "customer"))
+        if user and _g(sub, "status") in ("active", "trialing"):
+            plan = _g(_g(sub, "metadata"), "plan") or user.plan
             _grant(db, user, plan, _period_end(sub))
             log.info("Assinatura atualizada: user=%s plano=%s", user.email, plan)
 
     elif etype in ("customer.subscription.deleted", "invoice.payment_failed"):
-        cust = obj.get("customer")
+        cust = _g(obj, "customer")
         user = _user_by_customer(db, cust)
         if user:
             # Não zera na hora do fail (Stripe re-tenta); expira no fim do período pago.

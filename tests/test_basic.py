@@ -288,9 +288,31 @@ class TestReferredBonus:
         assert REFERRED_BONUS_DAYS == 15
 
 
+def _so(d):
+    """Constrói um StripeObject igual ao que a lib entrega no webhook.
+    Testar com dict puro NÃO reproduz produção: StripeObject não tem .get()."""
+    from stripe._stripe_object import StripeObject
+    return StripeObject.construct_from(d, "sk_test")
+
+
 class TestStripeWebhookCompat:
-    """A API Basil (2025-03-31) moveu current_period_end para os items.
-    O handler tem de funcionar nos dois formatos."""
+    """Dois riscos reais cobertos aqui:
+    1) API Basil (2025-03-31) moveu current_period_end para os items;
+    2) StripeObject (lib v15+) não herda dict e não tem .get()."""
+
+    def test_acessor_funciona_com_stripeobject_e_dict(self):
+        from app.routers.billing import _g
+        so = _so({"customer": "cus_1", "metadata": {"plan": "pro"}})
+        assert _g(so, "customer") == "cus_1"           # StripeObject (produção)
+        assert _g({"customer": "cus_2"}, "customer") == "cus_2"  # dict
+        assert _g(so, "inexistente", "PADRAO") == "PADRAO"
+        assert _g(None, "x", "PADRAO") == "PADRAO"
+        assert _g(_g(so, "metadata"), "plan") == "pro"  # aninhado
+
+    def test_period_end_com_stripeobject_basil(self):
+        from app.routers.billing import _period_end
+        d = _period_end(_so({"items": {"data": [{"current_period_end": 1800000000}]}}))
+        assert d is not None and d.year == 2027
 
     def test_period_end_formato_novo_basil(self):
         from app.routers.billing import _period_end
@@ -306,6 +328,12 @@ class TestStripeWebhookCompat:
         from app.routers.billing import _period_end
         assert _period_end({}) is None
         assert _period_end({"items": {"data": []}}) is None
+
+    def test_subscription_id_da_invoice_com_stripeobject(self):
+        from app.routers.billing import _subscription_id_from_invoice
+        novo = _so({"parent": {"subscription_details": {"subscription": "sub_SO"}}})
+        assert _subscription_id_from_invoice(novo) == "sub_SO"
+        assert _subscription_id_from_invoice(_so({})) is None
 
     def test_subscription_id_da_invoice_novo_e_antigo(self):
         from app.routers.billing import _subscription_id_from_invoice
