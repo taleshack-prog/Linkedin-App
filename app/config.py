@@ -8,11 +8,11 @@ class Settings(BaseSettings):
 
     # App
     APP_NAME: str = "LinkPost AI"
-    BASE_URL: str = "http://localhost:8000"          # URL pública (Railway) — usada no redirect_uri
+    BASE_URL: str = "https://api.posthink.com.br"     # URL pública da API — usada no redirect_uri do LinkedIn
     SECRET_KEY: str                                   # Fernet key (gerar: Fernet.generate_key())
     DATABASE_URL: str                                 # postgresql+psycopg://... (Railway)
     REDIS_URL: str = "redis://localhost:6379/0"       # broker/backend Celery (Railway Redis)
-    FRONTEND_ORIGINS: str = "http://localhost:5173"   # origens CORS, separadas por vírgula (add URL da Vercel)
+    FRONTEND_ORIGINS: str = "https://posthink.com.br" # origens CORS, separadas por vírgula
 
     # LinkedIn OAuth (Developer Portal > sua app > Auth)
     LINKEDIN_CLIENT_ID: str
@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     STRIPE_PRICE_PRO: str = ""           # price_... do plano Pro (R$87)
     STRIPE_PRICE_AGENCY: str = ""        # price_... do plano Agency (R$257)
     GUARANTEE_DAYS: int = 7                           # garantia de devolução (CDC art.49: mínimo 7)
-    FRONTEND_APP_URL: str = "http://localhost:5173"   # p/ redirect pós-checkout
+    FRONTEND_APP_URL: str = "https://posthink.com.br" # p/ redirect pós-checkout do Stripe
 
     # Publicação
     PUBLISH_SCAN_INTERVAL_SECONDS: int = 60

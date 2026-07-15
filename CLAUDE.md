@@ -3,6 +3,8 @@
 SaaS multi-tenant que gera posts de LinkedIn com IA (pesquisa web + redação) e
 publica automaticamente via API oficial do LinkedIn. Uso próprio + comercialização.
 
+Produção: app https://posthink.com.br (Vercel) · API https://api.posthink.com.br (Railway)
+
 ## Stack (padrão dos projetos do Tales)
 - Backend: FastAPI + SQLAlchemy 2.0 + Pydantic v2
 - Fila: Celery (worker + beat) sobre Redis

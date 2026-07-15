@@ -1,6 +1,6 @@
 // Cliente da API LinkPost.
 // Auth: JWT (Authorization: Bearer) — com fallback legado por X-API-Key na transição.
-const BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const BASE = import.meta.env.VITE_API_URL || "https://api.posthink.com.br";
 
 export function getToken() {
   return localStorage.getItem("linkpost_token") || "";
