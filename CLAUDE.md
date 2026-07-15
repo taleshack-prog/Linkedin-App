@@ -1,4 +1,6 @@
-# LinkPost AI — Contexto de desenvolvimento (Claude Code)
+# Posthink — Contexto de desenvolvimento (Claude Code)
+(marca antiga: 'LinkPost AI' — trocada em 07/2026; migração/schema.sql
+ mantêm o nome antigo em comentários por serem histórico aplicado)
 
 SaaS multi-tenant que gera posts de LinkedIn com IA (pesquisa web + redação) e
 publica automaticamente via API oficial do LinkedIn. Uso próprio + comercialização.

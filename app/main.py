@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.routers import accounts, auth, auth_linkedin, billing, briefs, posts, privacy, profile
 
-app = FastAPI(title="LinkPost AI", version="0.2.0")
+app = FastAPI(title="Posthink", version="1.0.0")
 
 # CORS: origens do frontend (Vercel + dev local), separadas por vírgula no .env
 app.add_middleware(

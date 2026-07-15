@@ -1,8 +1,8 @@
-# LinkPost AI
+# Posthink
 
 Produção: app https://posthink.com.br · API https://api.posthink.com.br
 
-Gera posts de LinkedIn com IA (pesquisa web + redação via Anthropic API) e publica
+Posthink gera posts de LinkedIn com IA (pesquisa web + redação via Anthropic API) e publica
 automaticamente no horário agendado, via API oficial do LinkedIn (`POST /rest/posts`).
 
 **Humano no loop**: nada é publicado sem aprovação explícita (`approve` + `publish_at`).

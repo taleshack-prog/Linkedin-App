@@ -1,22 +1,39 @@
-// Cliente da API LinkPost.
+// Cliente da API Posthink.
 // Auth: JWT (Authorization: Bearer) — com fallback legado por X-API-Key na transição.
 const BASE = import.meta.env.VITE_API_URL || "https://api.posthink.com.br";
 
+// Chaves renomeadas para posthink_*; lemos as antigas (linkpost_*) como
+// fallback para não deslogar quem já estava logado, e migramos na leitura.
+const TOKEN_KEY = "posthink_token";
+const KEY_KEY = "posthink_api_key";
+const LEGACY = { token: "linkpost_token", key: "linkpost_api_key" };
+
+function readWithFallback(current, legacy) {
+  const v = localStorage.getItem(current);
+  if (v) return v;
+  const old = localStorage.getItem(legacy);
+  if (old) {
+    localStorage.setItem(current, old);   // migra silenciosamente
+    localStorage.removeItem(legacy);
+    return old;
+  }
+  return "";
+}
+
 export function getToken() {
-  return localStorage.getItem("linkpost_token") || "";
+  return readWithFallback(TOKEN_KEY, LEGACY.token);
 }
 export function setToken(t) {
-  localStorage.setItem("linkpost_token", t);
+  localStorage.setItem(TOKEN_KEY, t);
 }
 export function getApiKey() {
-  return localStorage.getItem("linkpost_api_key") || "";
+  return readWithFallback(KEY_KEY, LEGACY.key);
 }
 export function setApiKey(key) {
-  localStorage.setItem("linkpost_api_key", key);
+  localStorage.setItem(KEY_KEY, key);
 }
 export function clearAuth() {
-  localStorage.removeItem("linkpost_token");
-  localStorage.removeItem("linkpost_api_key");
+  [TOKEN_KEY, KEY_KEY, LEGACY.token, LEGACY.key].forEach((k) => localStorage.removeItem(k));
 }
 export function isAuthed() {
   return Boolean(getToken() || getApiKey());

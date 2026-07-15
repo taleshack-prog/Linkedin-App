@@ -57,7 +57,7 @@ export default function App() {
     <div className="layout">
       <nav className="rail" aria-label="Pipeline de publicação">
         <div className="brand">
-          LinkPost AI
+          Posthink
           <small>mesa editorial</small>
         </div>
 

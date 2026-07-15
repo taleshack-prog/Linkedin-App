@@ -72,7 +72,7 @@ export default function Login({ onLogin }) {
   return (
     <div className="login">
       <div className="box">
-        <h1>LinkPost AI</h1>
+        <h1>Posthink</h1>
         <p>
           {mode === "register"
             ? "Crie sua conta para abrir a mesa editorial."

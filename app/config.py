@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     # App
-    APP_NAME: str = "LinkPost AI"
+    APP_NAME: str = "Posthink"
     BASE_URL: str = "https://api.posthink.com.br"     # URL pública da API — usada no redirect_uri do LinkedIn
     SECRET_KEY: str                                   # Fernet key (gerar: Fernet.generate_key())
     DATABASE_URL: str                                 # postgresql+psycopg://... (Railway)
