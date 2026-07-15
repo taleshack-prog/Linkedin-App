@@ -11,18 +11,19 @@ from datetime import datetime, timezone
 class Plan:
     key: str
     name: str
-    price_brl: int
+    price_cents: int                # em CENTAVOS (padrão Stripe; sem float em dinheiro)
     linkedin_accounts: int          # nº máximo de contas LinkedIn conectáveis
     ai_images: bool                 # geração de imagem por IA
     doc_upload: bool                # material de referência (upload de docs)
-    brand_profile: bool            # perfil de marca avançado
+    brand_profile: bool             # perfil de marca
+    text_formatting: bool           # negrito/itálico/mono (Unicode) no editor
 
 
 PLANS: dict[str, Plan] = {
-    "free":    Plan("free",    "Gratuito", 0,   linkedin_accounts=1,  ai_images=False, doc_upload=False, brand_profile=False),
-    "starter": Plan("starter", "Starter",  20,  linkedin_accounts=1,  ai_images=False, doc_upload=False, brand_profile=True),
-    "pro":     Plan("pro",     "Pro",      40,  linkedin_accounts=2,  ai_images=True,  doc_upload=True,  brand_profile=True),
-    "agency":  Plan("agency",  "Agency",   100, linkedin_accounts=10, ai_images=True,  doc_upload=True,  brand_profile=True),
+    "free":    Plan("free",    "Gratuito",     0, linkedin_accounts=1,  ai_images=False, doc_upload=False, brand_profile=False, text_formatting=False),
+    "starter": Plan("starter", "Starter",   2000, linkedin_accounts=1,  ai_images=False, doc_upload=False, brand_profile=True,  text_formatting=False),
+    "pro":     Plan("pro",     "Pro",       4570, linkedin_accounts=2,  ai_images=True,  doc_upload=True,  brand_profile=True,  text_formatting=True),
+    "agency":  Plan("agency",  "Agency",   10000, linkedin_accounts=10, ai_images=True,  doc_upload=True,  brand_profile=True,  text_formatting=True),
 }
 
 # Bônus do INDICADO: dias extras ao assinar via link de indicação

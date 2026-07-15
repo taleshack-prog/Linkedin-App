@@ -57,6 +57,14 @@ celery -A app.tasks.celery_app.celery worker -l info
 celery -A app.tasks.celery_app.celery beat -l info
 ```
 
+## Formatação de texto (Unicode) — frontend/src/format.js
+O feed do LinkedIn não tem rich text: negrito/itálico são caracteres Unicode que
+IMITAM formatação. Custos: leitores de tela pulam, busca não indexa, ocupa mais
+bytes. Usamos blocos SANS-SERIF (os serifados têm buracos, ex.: itálico sem 'h').
+Acentos não têm variante — "ação" vira "𝗮çã𝗼" (por isso o aviso).
+Guarda-corpos: hashtag bloqueada, aviso de acento, aviso acima de 20% do post.
+Feature do plano Pro+ (`text_formatting`).
+
 ## Roadmap
 - [x] Pauta com material de referência (PDF/DOCX/TXT/MD/CSV -> texto extraído no prompt)
 - [x] Perfil de marca (brand_profiles): contexto do autor injetado em toda geração
@@ -67,7 +75,8 @@ celery -A app.tasks.celery_app.celery beat -l info
 - [x] Alembic (baseline 0001; pre-deploy no Railway)
 - [x] Auth real: JWT (e-mail/senha via bcrypt + Google Sign-In) com transição do X-API-Key;
       alicerces de indicação (referral_code/referred_by) — crédito de meses na fase Stripe
-- [x] Billing (Stripe): 3 planos BRL (Starter 20/Pro 40/Agency 100), cobrança
+- [x] Billing (Stripe): 3 planos BRL (Starter 20,00 / Pro 45,70 / Agency 100,00 —
+      preços em CENTAVOS no código, padrão Stripe), cobrança
       imediata com garantia de 7 dias (CDC art.49),
       Checkout + webhook (fonte da verdade) + portal; gating de features por plano
 - [x] Gamificação de indicação: padrinho sobe a escada 3/10/16 -> 1/6/12 meses;

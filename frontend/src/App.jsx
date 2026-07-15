@@ -21,15 +21,17 @@ export default function App() {
   const [view, setView] = useState("draft");
   const [counts, setCounts] = useState({});
   const [accounts, setAccounts] = useState([]);
+  const [features, setFeatures] = useState({});
   const [refreshKey, setRefreshKey] = useState(0);
 
   const refresh = useCallback(async () => {
     try {
-      const [all, accs] = await Promise.all([api.posts(), api.accounts()]);
+      const [all, accs, st] = await Promise.all([api.posts(), api.accounts(), api.billingStatus().catch(() => ({}))]);
       const c = {};
       for (const p of all) c[p.status] = (c[p.status] || 0) + 1;
       setCounts(c);
       setAccounts(accs);
+      setFeatures(st || {});
       setRefreshKey((k) => k + 1);
     } catch {
       /* 401 já redireciona via api.js */
@@ -99,6 +101,7 @@ export default function App() {
             title={stage.label}
             subtitle={stage.subtitle}
             refreshKey={refreshKey}
+            canFormat={Boolean(features.text_formatting)}
           />
         )}
         {view === "calendar" && <Calendar refreshKey={refreshKey} />}

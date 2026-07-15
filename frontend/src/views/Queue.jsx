@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api, STATUS_LABEL } from "../api.js";
+import { applyStyle, checkSelection, stripStyles } from "../format.js";
 
 const MAX = 3000;
 
@@ -26,7 +27,44 @@ function PostImage({ postId, version }) {
   return <img className="post-image" src={src} alt="Imagem anexada ao post" />;
 }
 
-function PostCard({ post, onChanged }) {
+function FormatBar({ textareaRef, value, onChange, onNotice }) {
+  function format(style) {
+    const el = textareaRef.current;
+    if (!el) return;
+    const { selectionStart: s, selectionEnd: e } = el;
+    const selection = value.slice(s, e);
+    const check = checkSelection(selection, value, style);
+    if (!check.ok) return onNotice(check.error, "err");
+    if (check.warning) onNotice(check.warning, "warn");
+    const plain = stripStyles(selection);
+    // Clicar no mesmo estilo com o texto já formatado desfaz
+    const next = plain === selection ? applyStyle(plain, style) : plain;
+    const updated = value.slice(0, s) + next + value.slice(e);
+    onChange(updated);
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(s, s + next.length);
+    });
+  }
+  return (
+    <div className="fmt-bar">
+      <button type="button" className="fmt-btn" onClick={() => format("bold")} title="Negrito (seleção)">
+        <strong>B</strong>
+      </button>
+      <button type="button" className="fmt-btn" onClick={() => format("italic")} title="Itálico (seleção)">
+        <em>I</em>
+      </button>
+      <button type="button" className="fmt-btn mono" onClick={() => format("mono")} title="Monoespaçado (seleção)">
+        M
+      </button>
+      <span className="fmt-hint">
+        selecione o trecho · o LinkedIn não tem negrito real: usamos Unicode, que leitores de tela e a busca ignoram
+      </span>
+    </div>
+  );
+}
+
+function PostCard({ post, onChanged, canFormat }) {
   const [editing, setEditing] = useState(false);
   const [commentary, setCommentary] = useState(post.commentary);
   const [hashtags, setHashtags] = useState(post.hashtags.join(" "));
@@ -34,6 +72,8 @@ function PostCard({ post, onChanged }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const fileInput = useRef(null);
+  const commentaryRef = useRef(null);
+  const [fmtNotice, setFmtNotice] = useState(null);
   const [imgVersion, setImgVersion] = useState(0);
   const [aiOpen, setAiOpen] = useState(false);
   const [aiInstructions, setAiInstructions] = useState("");
@@ -113,7 +153,28 @@ function PostCard({ post, onChanged }) {
         <>
           <div className="field">
             <label htmlFor={`c-${post.id}`}>Texto do post</label>
-            <textarea id={`c-${post.id}`} value={commentary} onChange={(e) => setCommentary(e.target.value)} />
+            {canFormat && (
+              <FormatBar
+                textareaRef={commentaryRef}
+                value={commentary}
+                onChange={setCommentary}
+                onNotice={(msg, kind) => {
+                  setFmtNotice({ msg, kind });
+                  setTimeout(() => setFmtNotice(null), 6000);
+                }}
+              />
+            )}
+            {fmtNotice && (
+              <div className={`notice ${fmtNotice.kind === "err" ? "err" : ""}`} style={{ marginBottom: 8 }}>
+                {fmtNotice.msg}
+              </div>
+            )}
+            <textarea
+              id={`c-${post.id}`}
+              ref={commentaryRef}
+              value={commentary}
+              onChange={(e) => setCommentary(e.target.value)}
+            />
           </div>
           <div className="field">
             <label htmlFor={`h-${post.id}`}>Hashtags (separadas por espaço)</label>
@@ -210,7 +271,7 @@ function PostCard({ post, onChanged }) {
   );
 }
 
-export default function Queue({ status, title, subtitle, refreshKey }) {
+export default function Queue({ status, title, subtitle, refreshKey, canFormat }) {
   const [posts, setPosts] = useState(null);
   const [error, setError] = useState("");
 
@@ -239,7 +300,7 @@ export default function Queue({ status, title, subtitle, refreshKey }) {
           Nada por aqui. {status === "draft" ? "Crie uma pauta para gerar rascunhos." : ""}
         </div>
       )}
-      {posts && posts.map((p) => <PostCard key={p.id} post={p} onChanged={load} />)}
+      {posts && posts.map((p) => <PostCard key={p.id} post={p} onChanged={load} canFormat={canFormat} />)}
     </>
   );
 }

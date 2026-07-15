@@ -8,6 +8,7 @@ const FEATURES = [
   ["Perfil de marca", (p) => p.brand_profile],
   ["Imagem por IA", (p) => p.ai_images],
   ["Material de referência (docs)", (p) => p.doc_upload],
+  ["Formatação de texto (negrito/itálico)", (p) => p.text_formatting],
   ["Contas LinkedIn", (p) => p.linkedin_accounts],
 ];
 
@@ -78,7 +79,7 @@ export default function Billing() {
           <div key={p.key} className={`plan-card ${p.key === "pro" ? "featured" : ""}`}>
             {p.key === "pro" && <span className="plan-badge">Mais popular</span>}
             <h3>{p.name}</h3>
-            <div className="plan-price">R$ {p.price_brl}<span>/mês</span></div>
+            <div className="plan-price">R$ {(p.price_cents / 100).toFixed(2).replace(".", ",")}<span>/mês</span></div>
             <ul className="plan-features">
               {FEATURES.map(([label, fn]) => {
                 const v = fn(p);

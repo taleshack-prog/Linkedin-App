@@ -46,9 +46,10 @@ def list_plans():
     return {
         "plans": [
             {
-                "key": p.key, "name": p.name, "price_brl": p.price_brl,
+                "key": p.key, "name": p.name, "price_cents": p.price_cents,
                 "linkedin_accounts": p.linkedin_accounts, "ai_images": p.ai_images,
                 "doc_upload": p.doc_upload, "brand_profile": p.brand_profile,
+                "text_formatting": p.text_formatting,
             }
             for p in PLANS.values() if p.key != "free"
         ],
@@ -66,6 +67,9 @@ class BillingStatus(BaseModel):
     referral_code: str | None
     active_referrals: int
     months_earned: int
+    text_formatting: bool = False
+    ai_images: bool = False
+    doc_upload: bool = False
 
 
 @router.get("/status", response_model=BillingStatus)
@@ -78,6 +82,9 @@ def status(db: Session = Depends(get_db), user: User = Depends(get_current_user)
         referral_code=user.referral_code,
         active_referrals=count_active_referrals(db, user.id),
         months_earned=user.referral_months_granted or 0,
+        text_formatting=p.text_formatting,
+        ai_images=p.ai_images,
+        doc_upload=p.doc_upload,
     )
 
 
