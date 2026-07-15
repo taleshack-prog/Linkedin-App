@@ -286,3 +286,33 @@ class TestReferredBonus:
     def test_bonus_do_indicado_definido(self):
         from app.services.plans import REFERRED_BONUS_DAYS
         assert REFERRED_BONUS_DAYS == 15
+
+
+class TestStripeWebhookCompat:
+    """A API Basil (2025-03-31) moveu current_period_end para os items.
+    O handler tem de funcionar nos dois formatos."""
+
+    def test_period_end_formato_novo_basil(self):
+        from app.routers.billing import _period_end
+        sub = {"items": {"data": [{"current_period_end": 1800000000}]}}
+        d = _period_end(sub)
+        assert d is not None and d.year == 2027
+
+    def test_period_end_formato_antigo(self):
+        from app.routers.billing import _period_end
+        assert _period_end({"current_period_end": 1800000000}) is not None
+
+    def test_period_end_ausente_nao_quebra(self):
+        from app.routers.billing import _period_end
+        assert _period_end({}) is None
+        assert _period_end({"items": {"data": []}}) is None
+
+    def test_subscription_id_da_invoice_novo_e_antigo(self):
+        from app.routers.billing import _subscription_id_from_invoice
+        # formato antigo
+        assert _subscription_id_from_invoice({"subscription": "sub_123"}) == "sub_123"
+        # formato novo (Basil): parent.subscription_details.subscription
+        novo = {"parent": {"subscription_details": {"subscription": "sub_456"}}}
+        assert _subscription_id_from_invoice(novo) == "sub_456"
+        # invoice avulsa
+        assert _subscription_id_from_invoice({}) is None

@@ -65,6 +65,14 @@ Acentos não têm variante — "ação" vira "𝗮çã𝗼" (por isso o aviso).
 Guarda-corpos: hashtag bloqueada, aviso de acento, aviso acima de 20% do post.
 Feature do plano Pro+ (`text_formatting`).
 
+## Stripe — armadilhas conhecidas
+- API "Basil" (2025-03-31+) REMOVEU `current_period_end` da Subscription: agora
+  vive em `items.data[].current_period_end`. Também moveu `invoice.subscription`
+  para `invoice.parent.subscription_details.subscription`. Os helpers
+  `_period_end()` e `_subscription_id_from_invoice()` leem os DOIS formatos.
+- Sintoma quando quebra: pagamento aprovado (tela verde) mas plano não muda —
+  a webhook estoura 500. Diagnóstico: Workbench > Webhooks > Tentativas.
+
 ## Roadmap
 - [x] Pauta com material de referência (PDF/DOCX/TXT/MD/CSV -> texto extraído no prompt)
 - [x] Perfil de marca (brand_profiles): contexto do autor injetado em toda geração

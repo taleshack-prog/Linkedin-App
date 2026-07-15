@@ -4,6 +4,7 @@ Fluxo: GET /billing/plans (público) -> POST /billing/checkout (cria sessão) ->
 Stripe hospeda o pagamento -> webhook provisiona/revoga. O webhook é a fonte da
 verdade da assinatura (nunca confiar no redirect de sucesso do cliente).
 """
+import logging
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
@@ -17,6 +18,8 @@ from app.security import get_current_user
 from app.services import referrals
 from app.services.plans import PLANS, REFERRAL_TIERS, REFERRED_BONUS_DAYS, plan_of
 from app.services.referrals import count_active_referrals
+
+log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
@@ -164,12 +167,43 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(defaul
     db = SessionLocal()
     try:
         _handle_event(db, stripe, event)
+    except Exception:
+        # Log completo p/ diagnóstico; erro 500 faz o Stripe reenviar o evento
+        log.exception("Falha ao processar webhook %s", event.get("type"))
+        raise
     finally:
         db.close()
     return {"received": True}
 
 
+def _period_end(sub) -> datetime | None:
+    """Fim do período vigente da assinatura.
+
+    A API "Basil" (2025-03-31) REMOVEU current_period_end da Subscription e o
+    moveu para os items (items.data[].current_period_end). Lemos dos dois lugares
+    para funcionar em qualquer versão de API configurada na webhook.
+    """
+    ts = sub.get("current_period_end")
+    if not ts:
+        items = (sub.get("items") or {}).get("data") or []
+        ts = next((i.get("current_period_end") for i in items if i.get("current_period_end")), None)
+    return datetime.fromtimestamp(ts, tz=timezone.utc) if ts else None
+
+
+def _subscription_id_from_invoice(inv) -> str | None:
+    """ID da assinatura numa invoice. Basil moveu invoice.subscription para
+    invoice.parent.subscription_details.subscription."""
+    sub = inv.get("subscription")
+    if sub:
+        return sub if isinstance(sub, str) else sub.get("id")
+    details = (inv.get("parent") or {}).get("subscription_details") or {}
+    sub = details.get("subscription")
+    return sub if isinstance(sub, str) else (sub or {}).get("id")
+
+
 def _user_by_customer(db: Session, customer_id: str) -> User | None:
+    if not customer_id:
+        return None
     return db.query(User).filter_by(stripe_customer_id=customer_id).first()
 
 
@@ -180,19 +214,28 @@ def _handle_event(db, stripe, event) -> None:
     if etype == "checkout.session.completed":
         user = _user_by_customer(db, obj.get("customer"))
         plan = (obj.get("metadata") or {}).get("plan")
-        if user and plan and obj.get("subscription"):
+        if not user:
+            log.warning("Webhook %s: cliente %s sem usuário local", etype, obj.get("customer"))
+            return
+        if plan and obj.get("subscription"):
             sub = stripe.Subscription.retrieve(obj["subscription"])
-            until = datetime.fromtimestamp(sub["current_period_end"], tz=timezone.utc)
-            _grant(db, user, plan, until)
+            _grant(db, user, plan, _period_end(sub))
+            log.info("Assinatura provisionada: user=%s plano=%s", user.email, plan)
 
     elif etype in ("customer.subscription.updated", "invoice.paid"):
         # Renovação/mudança: reflete período e plano vigentes
-        sub = obj if etype == "customer.subscription.updated" else stripe.Subscription.retrieve(obj["subscription"])
+        if etype == "customer.subscription.updated":
+            sub = obj
+        else:
+            sub_id = _subscription_id_from_invoice(obj)
+            if not sub_id:
+                return  # invoice avulsa, sem assinatura
+            sub = stripe.Subscription.retrieve(sub_id)
         user = _user_by_customer(db, sub.get("customer"))
         if user and sub.get("status") in ("active", "trialing"):
             plan = (sub.get("metadata") or {}).get("plan") or user.plan
-            until = datetime.fromtimestamp(sub["current_period_end"], tz=timezone.utc)
-            _grant(db, user, plan, until)
+            _grant(db, user, plan, _period_end(sub))
+            log.info("Assinatura atualizada: user=%s plano=%s", user.email, plan)
 
     elif etype in ("customer.subscription.deleted", "invoice.payment_failed"):
         cust = obj.get("customer")
