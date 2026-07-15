@@ -77,6 +77,17 @@ Feature do plano Pro+ (`text_formatting`).
   a webhook estoura 500. Diagnóstico: Workbench > Webhooks > Tentativas + logs
   da api no Railway.
 
+## LGPD (implementado)
+- Política pública em /privacidade (rota sem login; vercel.json faz o rewrite SPA).
+  URL exigida pelo LinkedIn Developer Portal.
+- GET /privacy/export: portabilidade (art. 18, V) — NÃO exporta tokens.
+- DELETE /privacy/account: exclusão (art. 18, VI) — cancela assinatura no Stripe,
+  revoga token no LinkedIn (ambos best-effort) e apaga tudo via cascade do banco.
+- ATENÇÃO: User.linkedin_accounts PRECISA de passive_deletes=True — sem isso o
+  ORM tenta user_id=NULL (NOT NULL) e a exclusão falha.
+- Transferência internacional (art. 33) declarada: Anthropic, OpenAI, LinkedIn,
+  Stripe, Railway e Vercel (EUA).
+
 ## Roadmap
 - [x] Pauta com material de referência (PDF/DOCX/TXT/MD/CSV -> texto extraído no prompt)
 - [x] Perfil de marca (brand_profiles): contexto do autor injetado em toda geração
@@ -94,5 +105,5 @@ Feature do plano Pro+ (`text_formatting`).
 - [x] Gamificação de indicação: padrinho sobe a escada 3/10/16 -> 1/6/12 meses;
       indicado ganha +15 dias na 1a assinatura; só conta assinante pago; tudo
       idempotente (services/referrals.py)
-- [ ] LGPD: política de privacidade + exclusão de conta/dados
+- [x] LGPD: política publicada + exportação + exclusão de conta/dados
 - [ ] w_organization_social (Company Pages) — requer review Marketing API (2-4 semanas)

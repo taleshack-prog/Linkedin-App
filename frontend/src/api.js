@@ -68,6 +68,9 @@ export const api = {
   billingPlans: () => request("/billing/plans"),
   checkout: (plan) => request("/billing/checkout", { method: "POST", body: JSON.stringify({ plan }) }),
   billingPortal: () => request("/billing/portal", { method: "POST" }),
+  exportData: () => request("/privacy/export"),
+  deleteAccount: (confirmacao) =>
+    request("/privacy/account", { method: "DELETE", body: JSON.stringify({ confirmacao }) }),
   // ---- app ----
   accounts: () => request("/accounts"),
   getProfile: () => request("/profile"),

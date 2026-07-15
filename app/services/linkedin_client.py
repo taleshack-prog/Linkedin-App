@@ -18,6 +18,7 @@ from app.config import get_settings
 AUTH_URL = "https://www.linkedin.com/oauth/v2/authorization"
 TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
 USERINFO_URL = "https://api.linkedin.com/v2/userinfo"
+REVOKE_URL = "https://www.linkedin.com/oauth/v2/revoke"
 POSTS_URL = "https://api.linkedin.com/rest/posts"
 IMAGES_URL = "https://api.linkedin.com/rest/images"
 
@@ -180,3 +181,22 @@ def tokens_to_expiry(data: dict) -> tuple[datetime, datetime | None]:
     if data.get("refresh_token_expires_in"):
         refresh_exp = now + timedelta(seconds=int(data["refresh_token_expires_in"]))
     return access_exp, refresh_exp
+
+
+def revoke_token(token: str) -> bool:
+    """Revoga o token no LinkedIn (usado na exclusão de conta — LGPD).
+    Best-effort: falha aqui não pode impedir o usuário de excluir os dados."""
+    s = get_settings()
+    try:
+        resp = httpx.post(
+            REVOKE_URL,
+            data={
+                "token": token,
+                "client_id": s.LINKEDIN_CLIENT_ID,
+                "client_secret": s.LINKEDIN_CLIENT_SECRET,
+            },
+            timeout=15,
+        )
+        return resp.status_code == 200
+    except Exception:  # noqa: BLE001
+        return False

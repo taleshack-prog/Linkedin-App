@@ -107,6 +107,12 @@ export default function Login({ onLogin }) {
             {GOOGLE_CLIENT_ID && (
               <div ref={googleBtn} style={{ marginTop: 12, display: "flex", justifyContent: "center" }} />
             )}
+            {mode === "register" && (
+              <p className="login-legal">
+                Ao criar a conta, você concorda com nossa{" "}
+                <a href="/privacidade" target="_blank" rel="noreferrer">Política de Privacidade</a>.
+              </p>
+            )}
             <p className="login-alt">
               {mode === "register" ? (
                 <>Já tem conta? <button onClick={() => setMode("login")}>Entrar</button></>

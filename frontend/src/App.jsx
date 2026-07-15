@@ -7,6 +7,7 @@ import Briefs from "./views/Briefs.jsx";
 import Accounts from "./views/Accounts.jsx";
 import Profile from "./views/Profile.jsx";
 import Billing from "./views/Billing.jsx";
+import Privacy from "./views/Privacy.jsx";
 
 // A navegação É o pipeline: os estágios do post são os itens do menu.
 const STAGES = [
@@ -17,6 +18,12 @@ const STAGES = [
 ];
 
 export default function App() {
+  // Política de privacidade é PÚBLICA (exigência do LinkedIn e da LGPD):
+  // acessível sem login, em URL própria.
+  if (typeof window !== "undefined" && window.location.pathname.startsWith("/privacidade")) {
+    return <Privacy />;
+  }
+
   const [authed, setAuthed] = useState(isAuthed());
   const [view, setView] = useState("draft");
   const [counts, setCounts] = useState({});

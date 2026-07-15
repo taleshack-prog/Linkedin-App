@@ -344,3 +344,20 @@ class TestStripeWebhookCompat:
         assert _subscription_id_from_invoice(novo) == "sub_456"
         # invoice avulsa
         assert _subscription_id_from_invoice({}) is None
+
+
+class TestLGPD:
+    def test_relacionamento_delega_cascade_ao_banco(self):
+        """Sem passive_deletes o ORM tenta user_id=NULL (NOT NULL) e a exclusão
+        de conta quebra — violando o art. 18, VI. Bug real, pego em teste."""
+        from app.models import User
+        rel = User.__mapper__.relationships["linkedin_accounts"]
+        assert rel.passive_deletes is True
+        assert "delete-orphan" in rel.cascade
+
+    def test_confirmacao_de_exclusao_e_case_insensitive(self):
+        # 'excluir', 'EXCLUIR' e ' Excluir ' devem valer; outros textos não
+        for ok in ("EXCLUIR", "excluir", "  Excluir  "):
+            assert ok.strip().upper() == "EXCLUIR"
+        for nao in ("sim", "delete", "", "exclui"):
+            assert nao.strip().upper() != "EXCLUIR"

@@ -47,7 +47,12 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    linkedin_accounts: Mapped[list["LinkedInAccount"]] = relationship(back_populates="user")
+    # passive_deletes=True: deixa o ON DELETE CASCADE do banco fazer o trabalho.
+    # Sem isso o ORM tenta setar user_id=NULL (que é NOT NULL) e a EXCLUSÃO DE
+    # CONTA falha — violando o direito de exclusão da LGPD (art. 18, VI).
+    linkedin_accounts: Mapped[list["LinkedInAccount"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan", passive_deletes=True
+    )
 
 
 class LinkedInAccount(Base):
