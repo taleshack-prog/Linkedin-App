@@ -16,7 +16,9 @@ from app.database import get_db
 from app.models import User
 from app.security import get_current_user
 from app.services import referrals
-from app.services.plans import PLANS, REFERRAL_TIERS, REFERRED_BONUS_DAYS, plan_of
+from app.services.plans import (
+    CYCLES, PLANS, REFERRAL_TIERS, REFERRED_BONUS_DAYS, annual_savings_cents, plan_of,
+)
 from app.services.referrals import count_active_referrals
 
 log = logging.getLogger(__name__)
@@ -34,13 +36,19 @@ def _stripe():
     return stripe
 
 
-def _price_id(plan_key: str) -> str | None:
+def _price_id(plan_key: str, cycle: str = "monthly") -> str | None:
     s = get_settings()
-    return {
+    mensal = {
         "starter": s.STRIPE_PRICE_STARTER,
         "pro": s.STRIPE_PRICE_PRO,
         "agency": s.STRIPE_PRICE_AGENCY,
-    }.get(plan_key)
+    }
+    anual = {
+        "starter": s.STRIPE_PRICE_STARTER_ANNUAL,
+        "pro": s.STRIPE_PRICE_PRO_ANNUAL,
+        "agency": s.STRIPE_PRICE_AGENCY_ANNUAL,
+    }
+    return (anual if cycle == "annual" else mensal).get(plan_key)
 
 
 
@@ -75,7 +83,10 @@ def list_plans():
     return {
         "plans": [
             {
-                "key": p.key, "name": p.name, "price_cents": p.price_cents,
+                "key": p.key, "name": p.name,
+                "price_cents": p.price_cents,
+                "price_cents_annual": p.price_cents_annual,
+                "annual_savings_cents": annual_savings_cents(p),
                 "linkedin_accounts": p.linkedin_accounts, "ai_images": p.ai_images,
                 "doc_upload": p.doc_upload, "brand_profile": p.brand_profile,
                 "text_formatting": p.text_formatting,
@@ -119,7 +130,8 @@ def status(db: Session = Depends(get_db), user: User = Depends(get_current_user)
 
 # ---------- Checkout ----------
 class CheckoutIn(BaseModel):
-    plan: str  # starter | pro | agency
+    plan: str                      # starter | pro | agency
+    cycle: str = "monthly"         # monthly | annual
 
 
 @router.post("/checkout")
@@ -130,9 +142,13 @@ def create_checkout(
 ):
     if payload.plan not in ("starter", "pro", "agency"):
         raise HTTPException(400, "Plano inválido")
-    price = _price_id(payload.plan)
+    if payload.cycle not in CYCLES:
+        raise HTTPException(400, "Ciclo inválido (use monthly ou annual)")
+    price = _price_id(payload.plan, payload.cycle)
     if not price:
-        raise HTTPException(503, f"Preço do plano {payload.plan} não configurado")
+        raise HTTPException(
+            503, f"Preço do plano {payload.plan} ({payload.cycle}) não configurado"
+        )
 
     stripe = _stripe()
     s = get_settings()
@@ -144,9 +160,9 @@ def create_checkout(
         customer=customer_id,
         line_items=[{"price": price, "quantity": 1}],
         subscription_data={
-            "metadata": {"user_id": str(user.id), "plan": payload.plan},
+            "metadata": {"user_id": str(user.id), "plan": payload.plan, "cycle": payload.cycle},
         },
-        metadata={"user_id": str(user.id), "plan": payload.plan},
+        metadata={"user_id": str(user.id), "plan": payload.plan, "cycle": payload.cycle},
         success_url=f"{s.FRONTEND_APP_URL}/?billing=success",
         cancel_url=f"{s.FRONTEND_APP_URL}/?billing=cancel",
         allow_promotion_codes=True,

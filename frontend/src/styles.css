@@ -325,3 +325,212 @@ textarea:focus, input:focus, select:focus, button:focus-visible {
   border-radius: 8px; background: var(--st-failed-bg);
 }
 .danger-zone p { font-size: 13.5px; color: var(--st-failed); }
+
+
+/* ===== Toggle mensal/anual ===== */
+.cycle-toggle {
+  display: inline-flex; gap: 4px; padding: 4px; margin-bottom: 16px;
+  background: var(--st-muted-bg); border-radius: 10px;
+}
+.cycle-toggle button {
+  border: none; background: none; color: var(--ink-soft); font-size: 14px; font-weight: 500;
+  padding: 7px 16px; border-radius: 7px; display: flex; align-items: center; gap: 8px;
+}
+.cycle-toggle button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(22,40,62,.12); }
+.cycle-badge {
+  font-family: var(--font-mono); font-size: 10.5px; background: var(--st-published-bg);
+  color: var(--st-published); padding: 2px 7px; border-radius: 20px; font-weight: 500;
+}
+.plan-sub { font-size: 12.5px; color: var(--ink-soft); margin: -8px 0 14px; }
+.plan-sub strong { color: var(--st-published); }
+
+/* =====================================================================
+   LANDING (posthink.com.br) — redação de uma pessoa só.
+   Paleta própria: papel frio, tinta profunda, cobalto do app e UM
+   vermelho de lápis de revisão, usado só no carimbo de aprovação.
+   ===================================================================== */
+.lp {
+  --papel: #f4f6f9;
+  --papel-alt: #eaeff5;
+  --tinta: #0f1e30;
+  --grafite: #64748b;
+  --cobalto: #2458e6;
+  --revisao: #e8493c;
+  --linha: #dbe3ec;
+  background: var(--papel);
+  color: var(--tinta);
+  min-height: 100vh;
+}
+.lp a { color: var(--cobalto); text-decoration: none; }
+.lp h1, .lp h2, .lp h3 { font-family: var(--font-display); letter-spacing: -0.02em; }
+
+/* slug line: a etiqueta de pauta da redação */
+.lp-slug {
+  font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--grafite); margin: 0 0 10px;
+}
+.lp-mono { font-family: var(--font-mono); font-size: 12px; color: var(--grafite); }
+.lp-marca { font-family: var(--font-display); font-weight: 700; font-size: 19px; letter-spacing: -0.03em; }
+
+.lp-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--cobalto); color: #fff; border: 1px solid var(--cobalto);
+  border-radius: 8px; padding: 9px 18px; font-size: 14.5px; font-weight: 600;
+  font-family: var(--font-body); cursor: pointer;
+}
+.lp-btn:hover { background: #1c49c2; border-color: #1c49c2; color: #fff; }
+.lp-btn.ghost { background: transparent; color: var(--tinta); border-color: var(--linha); }
+.lp-btn.ghost:hover { background: transparent; border-color: var(--tinta); color: var(--tinta); }
+.lp-btn.grande { padding: 13px 26px; font-size: 16px; }
+.lp-btn.bloco { width: 100%; }
+
+/* ===== Nav ===== */
+.lp-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 40px; max-width: 1180px; margin: 0 auto;
+}
+.lp-nav nav { display: flex; align-items: center; gap: 22px; }
+.lp-nav nav a { font-size: 14.5px; color: var(--grafite); font-weight: 500; }
+.lp-nav nav a:hover { color: var(--tinta); }
+.lp-nav nav a.lp-btn { color: #fff; }
+.lp-nav nav a.lp-btn.ghost { color: var(--tinta); }
+
+/* ===== Hero ===== */
+.lp-hero {
+  max-width: 1180px; margin: 0 auto; padding: 56px 40px 80px;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 56px; align-items: center;
+}
+.lp-hero h1 {
+  font-size: clamp(40px, 5.2vw, 66px); line-height: 1.02; font-weight: 700; margin: 0 0 20px;
+}
+.lp-lede { font-size: 17.5px; line-height: 1.6; color: var(--grafite); max-width: 46ch; margin: 0 0 28px; }
+.lp-lede strong { color: var(--tinta); }
+.lp-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+.lp-ref-aviso {
+  margin-top: 18px; font-size: 13.5px; color: var(--st-published);
+  background: var(--st-published-bg); display: inline-block; padding: 7px 14px; border-radius: 8px;
+}
+
+/* ===== Assinatura: o card que o visitante aprova ===== */
+.lp-mesa { position: relative; }
+.lp-card {
+  background: #fff; border: 1px solid var(--linha); border-left: 4px solid var(--st-draft);
+  border-radius: 12px; padding: 22px 24px; box-shadow: 0 18px 50px -20px rgba(15, 30, 48, .28);
+  transition: border-left-color .35s ease;
+}
+.lp-card.no-ar { border-left-color: var(--st-published); }
+.lp-card-topo { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.lp-chip {
+  font-family: var(--font-mono); font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 500;
+}
+.lp-chip.rasc { background: var(--st-draft-bg); color: var(--st-draft); }
+.lp-chip.pub { background: var(--st-published-bg); color: var(--st-published); }
+.lp-post {
+  white-space: pre-wrap; font-size: 14.5px; line-height: 1.62; margin: 0 0 12px; color: var(--tinta);
+}
+.lp-tags { color: var(--cobalto); font-size: 13.5px; margin-bottom: 16px; }
+.lp-acoes { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; border-top: 1px solid var(--linha); padding-top: 16px; }
+.lp-acoes .dica { font-style: italic; }
+
+/* o único vermelho da página: o carimbo do editor */
+.lp-publicado { border-top: 1px solid var(--linha); padding-top: 16px; }
+.lp-carimbo {
+  display: inline-block; font-family: var(--font-display); font-weight: 700; font-size: 14px;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--revisao);
+  border: 2px solid var(--revisao); border-radius: 6px; padding: 5px 12px;
+  transform: rotate(-3deg); margin-bottom: 12px;
+}
+.lp-publicado p { font-size: 14px; color: var(--grafite); margin: 0 0 10px; line-height: 1.55; }
+.lp-desfazer {
+  background: none; border: none; padding: 0; color: var(--cobalto);
+  font-size: 13.5px; text-decoration: underline; cursor: pointer; font-family: var(--font-body);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lp-card.no-ar .lp-carimbo { animation: carimbar .3s cubic-bezier(.2, 1.4, .4, 1); }
+  @keyframes carimbar {
+    from { transform: rotate(-3deg) scale(1.5); opacity: 0; }
+    to { transform: rotate(-3deg) scale(1); opacity: 1; }
+  }
+}
+
+/* ===== Seções ===== */
+.lp-secao { max-width: 1180px; margin: 0 auto; padding: 76px 40px; }
+.lp-secao > h2 { font-size: clamp(27px, 3.2vw, 38px); margin: 0 0 10px; font-weight: 700; }
+.lp-sub-secao { color: var(--grafite); font-size: 16px; margin: 0 0 28px; }
+.lp-fundo { max-width: none; background: var(--papel-alt); border-block: 1px solid var(--linha); }
+.lp-fundo > * { max-width: 1180px; margin-inline: auto; }
+
+/* Percurso */
+.lp-etapas { list-style: none; padding: 0; margin: 34px 0 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+.lp-etapas li { position: relative; padding-top: 18px; border-top: 2px solid var(--tinta); }
+.lp-etapas li:nth-child(2) { border-top-color: var(--linha); }
+.lp-etapas li:nth-child(4) { border-top-color: var(--linha); }
+.lp-num { font-family: var(--font-mono); font-size: 12px; color: var(--grafite); }
+.lp-etapas h3 { font-size: 19px; margin: 6px 0 8px; }
+.lp-etapas p { font-size: 14.5px; line-height: 1.6; color: var(--grafite); margin: 0 0 12px; }
+.lp-quem {
+  font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .1em;
+  padding: 3px 9px; border-radius: 20px;
+}
+.lp-quem.voce { background: var(--tinta); color: #fff; }
+.lp-quem.ia { background: var(--st-approved-bg); color: var(--st-approved); }
+.lp-quem.sist { background: var(--st-muted-bg); color: var(--grafite); }
+
+/* Teses */
+.lp-teses { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 34px 48px; margin-top: 30px; }
+.lp-teses h3 { font-size: 20px; margin: 0 0 8px; }
+.lp-teses p { font-size: 15px; line-height: 1.62; color: var(--grafite); margin: 0; }
+
+/* Planos */
+.lp-planos { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin-top: 8px; }
+.lp-plano {
+  background: #fff; border: 1px solid var(--linha); border-radius: 12px; padding: 26px 24px;
+  display: flex; flex-direction: column; position: relative;
+}
+.lp-plano.destaque { border: 2px solid var(--cobalto); }
+.lp-plano-tag {
+  position: absolute; top: -11px; left: 24px; background: var(--cobalto); color: #fff;
+  font-family: var(--font-mono); font-size: 10.5px; padding: 3px 10px; border-radius: 20px;
+}
+.lp-plano h3 { font-size: 18px; margin: 0 0 8px; }
+.lp-preco { font-family: var(--font-display); font-size: 34px; font-weight: 700; letter-spacing: -0.03em; }
+.lp-preco span { font-size: 14px; font-weight: 400; color: var(--grafite); }
+.lp-preco-sub { font-size: 12.5px; color: var(--grafite); margin: 4px 0 18px; min-height: 32px; }
+.lp-plano ul { list-style: none; padding: 0; margin: 0 0 20px; flex: 1; }
+.lp-plano li { font-size: 13.5px; padding: 5px 0 5px 20px; position: relative; }
+.lp-plano li::before { content: "✓"; position: absolute; left: 0; color: var(--st-published); font-weight: 700; }
+.lp-plano li.nao { color: var(--st-muted); }
+.lp-plano li.nao::before { content: "—"; color: var(--st-muted); }
+.lp-indica {
+  margin-top: 26px; padding: 18px 20px; background: var(--st-published-bg); border-radius: 10px;
+  font-size: 14.5px; line-height: 1.6; color: var(--st-published);
+}
+.lp-indica strong { color: var(--st-published); }
+
+/* Fechamento */
+.lp-fechamento { background: var(--tinta); color: #fff; text-align: center; padding: 84px 40px; }
+.lp-fechamento h2 { font-size: clamp(26px, 3.4vw, 40px); margin: 0 0 10px; color: #fff; font-weight: 700; }
+.lp-fechamento p { color: #93a5bb; font-size: 17px; margin: 0 0 28px; }
+
+/* Rodapé */
+.lp-rodape {
+  max-width: 1180px; margin: 0 auto; padding: 28px 40px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+}
+.lp-rodape nav { display: flex; gap: 20px; }
+.lp-rodape nav a { font-size: 13.5px; color: var(--grafite); }
+.lp-rodape nav a:hover { color: var(--tinta); }
+
+@media (max-width: 900px) {
+  .lp-hero { grid-template-columns: 1fr; padding: 32px 20px 56px; gap: 36px; }
+  .lp-nav { padding: 16px 20px; }
+  .lp-nav nav { gap: 12px; }
+  .lp-nav nav a:not(.lp-btn) { display: none; }
+  .lp-secao { padding: 52px 20px; }
+  .lp-etapas { grid-template-columns: 1fr; gap: 26px; }
+  .lp-teses { grid-template-columns: 1fr; gap: 26px; }
+  .lp-rodape { padding: 24px 20px; flex-direction: column; align-items: flex-start; }
+}
+
+.login-voltar { display: inline-block; font-size: 13px; color: var(--ink-soft); margin-bottom: 10px; text-decoration: none; }
+.login-voltar:hover { color: var(--action); }

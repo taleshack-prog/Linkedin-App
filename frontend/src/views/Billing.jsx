@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { api } from "../api.js";
 
+const brl = (cents) => (cents / 100).toFixed(2).replace(".", ",");
+
 const FEATURES = [
   ["Geração de texto ilimitada", () => true],
   ["Agendamento e publicação", () => true],
@@ -21,6 +23,7 @@ export default function Billing() {
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [cycle, setCycle] = useState("annual");   // anual em destaque: é o que queremos vender
 
   useEffect(() => {
     api.billingPlans().then((d) => { setPlans(d.plans); setTiers(d.referral_tiers); setGuaranteeDays(d.guarantee_days); setBonusDays(d.referred_bonus_days); }).catch((e) => setError(e.message));
@@ -30,7 +33,7 @@ export default function Billing() {
   async function subscribe(plan) {
     setBusy(plan); setError("");
     try {
-      const { url } = await api.checkout(plan);
+      const { url } = await api.checkout(plan, cycle);
       window.location.href = url;
     } catch (e) { setError(e.message); setBusy(""); }
   }
@@ -74,12 +77,38 @@ export default function Billing() {
         </div>
       )}
 
+      <div className="cycle-toggle">
+        <button className={cycle === "monthly" ? "on" : ""} onClick={() => setCycle("monthly")}>
+          Mensal
+        </button>
+        <button className={cycle === "annual" ? "on" : ""} onClick={() => setCycle("annual")}>
+          Anual <span className="cycle-badge">2 meses grátis</span>
+        </button>
+      </div>
+
       <div className="plans-grid">
         {plans?.map((p) => (
           <div key={p.key} className={`plan-card ${p.key === "pro" ? "featured" : ""}`}>
             {p.key === "pro" && <span className="plan-badge">Mais popular</span>}
             <h3>{p.name}</h3>
-            <div className="plan-price">R$ {(p.price_cents / 100).toFixed(2).replace(".", ",")}<span>/mês</span></div>
+            {cycle === "annual" ? (
+              <>
+                <div className="plan-price">
+                  R$ {brl(Math.round(p.price_cents_annual / 12))}<span>/mês</span>
+                </div>
+                <div className="plan-sub">
+                  R$ {brl(p.price_cents_annual)} por ano ·{" "}
+                  <strong>economize R$ {brl(p.annual_savings_cents)}</strong>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="plan-price">R$ {brl(p.price_cents)}<span>/mês</span></div>
+                <div className="plan-sub">
+                  no anual sai R$ {brl(Math.round(p.price_cents_annual / 12))}/mês
+                </div>
+              </>
+            )}
             <ul className="plan-features">
               {FEATURES.map(([label, fn]) => {
                 const v = fn(p);
@@ -92,7 +121,7 @@ export default function Billing() {
             </ul>
             <button className="btn primary" style={{ width: "100%" }} onClick={() => subscribe(p.key)}
               disabled={busy === p.key || (isPaid && status.plan === p.key)}>
-              {isPaid && status.plan === p.key ? "Plano atual" : busy === p.key ? "Redirecionando…" : "Assinar agora"}
+              {isPaid && status.plan === p.key ? "Plano atual" : busy === p.key ? "Redirecionando…" : cycle === "annual" ? "Assinar anual" : "Assinar mensal"}
             </button>
           </div>
         ))}

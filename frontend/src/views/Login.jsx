@@ -4,7 +4,9 @@ import { api, setApiKey, setToken } from "../api.js";
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
 export default function Login({ onLogin }) {
-  const [mode, setMode] = useState("login"); // login | register | apikey
+  // ?criar=1 (link da landing) abre direto no cadastro
+  const querCriar = new URLSearchParams(window.location.search).get("criar") === "1";
+  const [mode, setMode] = useState(querCriar ? "register" : "login"); // login | register | apikey
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -72,6 +74,7 @@ export default function Login({ onLogin }) {
   return (
     <div className="login">
       <div className="box">
+        <a className="login-voltar" href="/">← Posthink</a>
         <h1>Posthink</h1>
         <p>
           {mode === "register"

@@ -93,6 +93,12 @@ Feature do plano Pro+ (`text_formatting`).
 - Transferência internacional (art. 33) declarada: Anthropic, OpenAI, LinkedIn,
   Stripe, Railway e Vercel (EUA).
 
+## Frontend — rotas públicas
+- `/`            -> Landing (visitante). Quem TEM sessão cai direto no app.
+- `/entrar`      -> Login; `?criar=1` abre em cadastro; `?ref=` propaga a indicação.
+- `/privacidade` -> Política (LGPD + exigência do LinkedIn).
+- vercel.json faz o rewrite SPA — sem ele, URL direta dá 404.
+
 ## Roadmap
 - [x] Pauta com material de referência (PDF/DOCX/TXT/MD/CSV -> texto extraído no prompt)
 - [x] Perfil de marca (brand_profiles): contexto do autor injetado em toda geração

@@ -8,6 +8,7 @@ import Accounts from "./views/Accounts.jsx";
 import Profile from "./views/Profile.jsx";
 import Billing from "./views/Billing.jsx";
 import Privacy from "./views/Privacy.jsx";
+import Landing from "./views/Landing.jsx";
 
 // A navegação É o pipeline: os estágios do post são os itens do menu.
 const STAGES = [
@@ -18,8 +19,7 @@ const STAGES = [
 ];
 
 export default function App() {
-  // Política de privacidade é PÚBLICA (exigência do LinkedIn e da LGPD):
-  // acessível sem login, em URL própria.
+  // Rotas públicas (sem login): política — exigida pelo LinkedIn e pela LGPD.
   if (typeof window !== "undefined" && window.location.pathname.startsWith("/privacidade")) {
     return <Privacy />;
   }
@@ -49,7 +49,13 @@ export default function App() {
     if (authed) refresh();
   }, [authed, refresh]);
 
-  if (!authed) return <Login onLogin={() => setAuthed(true)} />;
+  if (!authed) {
+    // Visitante na raiz vê a landing; /entrar leva ao login/cadastro.
+    // Quem já tem sessão cai direto no app, sem passar pela landing.
+    const path = typeof window !== "undefined" ? window.location.pathname : "/";
+    if (path === "/" || path === "") return <Landing />;
+    return <Login onLogin={() => { window.location.href = "/"; }} />;
+  }
 
   const stage = STAGES.find((s) => s.key === view);
 

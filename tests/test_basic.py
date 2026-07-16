@@ -396,3 +396,43 @@ class TestViradaTestLive:
         assert u.stripe_customer_id == "cus_NOVO"               # e persiste
         u.stripe_customer_id = "cus_LIVE_ok"
         assert _ensure_customer(S, FakeDB(), u) == "cus_LIVE_ok"  # válido -> reutiliza
+
+
+class TestPlanoAnual:
+    def test_anual_e_10x_o_mensal_com_2_meses_gratis(self):
+        from app.services.plans import PLANS, annual_savings_cents
+        for k in ("starter", "pro", "agency"):
+            p = PLANS[k]
+            assert p.price_cents_annual == p.price_cents * 10, k
+            assert annual_savings_cents(p) == p.price_cents * 2, k  # economia = 2 meses
+
+    def test_valores_anuais(self):
+        from app.services.plans import PLANS
+        assert PLANS["starter"].price_cents_annual == 20000     # R$ 200,00
+        assert PLANS["pro"].price_cents_annual == 45700         # R$ 457,00
+        assert PLANS["agency"].price_cents_annual == 100000     # R$ 1.000,00
+
+    def test_price_id_escolhe_pelo_ciclo(self):
+        from app.config import get_settings
+        from app.routers.billing import _price_id
+        s = get_settings()
+        s.STRIPE_PRICE_PRO = "price_mensal"
+        s.STRIPE_PRICE_PRO_ANNUAL = "price_anual"
+        try:
+            assert _price_id("pro", "monthly") == "price_mensal"
+            assert _price_id("pro", "annual") == "price_anual"
+            assert _price_id("pro") == "price_mensal"        # default
+            assert _price_id("inexistente", "annual") is None
+        finally:
+            s.STRIPE_PRICE_PRO = ""
+            s.STRIPE_PRICE_PRO_ANNUAL = ""
+
+
+class TestLandingPublica:
+    def test_plans_e_publico_para_a_landing(self):
+        """A landing consulta /billing/plans SEM login — se exigisse auth,
+        o visitante não veria preço nenhum."""
+        import inspect
+        from app.routers import billing
+        src = inspect.getsource(billing.list_plans)
+        assert "get_current_user" not in src
