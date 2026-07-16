@@ -15,7 +15,7 @@ export default function Privacy() {
         </p>
         <p>
           Canal do encarregado (DPO) para assuntos de privacidade:{" "}
-          <a href="mailto:privacidade@posthink.com.br">privacidade@posthink.com.br</a>
+          <a href="mailto:talhack@yahoo.com">talhack@yahoo.com</a>
         </p>
 
         <h2>2. Quais dados coletamos</h2>
@@ -111,7 +111,7 @@ export default function Privacy() {
         <p>
           Para confirmação de tratamento, informações sobre compartilhamento ou qualquer outro
           direito, escreva para{" "}
-          <a href="mailto:privacidade@posthink.com.br">privacidade@posthink.com.br</a>. Respondemos
+          <a href="mailto:talhack@yahoo.com">talhack@yahoo.com</a>. Respondemos
           em até 15 dias.
         </p>
 
