@@ -68,6 +68,9 @@ Guarda-corpos: hashtag bloqueada, aviso de acento, aviso acima de 20% do post.
 Feature do plano Pro+ (`text_formatting`).
 
 ## Stripe — armadilhas conhecidas
+- Customer é POR MODO: o criado em test não existe em live ("No such customer").
+  `_ensure_customer()` valida e recria — sem isso, o 1º checkout em produção
+  quebra para todo usuário que já testou. Vale também p/ customer excluído.
 - API "Basil" (2025-03-31+) REMOVEU `current_period_end` da Subscription: agora
   vive em `items.data[].current_period_end`. Também moveu `invoice.subscription`
   para `invoice.parent.subscription_details.subscription`. Os helpers

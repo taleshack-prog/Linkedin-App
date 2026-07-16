@@ -43,6 +43,32 @@ def _price_id(plan_key: str) -> str | None:
     }.get(plan_key)
 
 
+
+def _ensure_customer(stripe, db: Session, user: User) -> str:
+    """Devolve um customer válido no modo ATUAL do Stripe (test ou live).
+
+    Um customer criado no modo teste não existe no modo ativo (e vice-versa).
+    Na virada test->live, o ID gravado vira órfão e o Stripe responde
+    "No such customer". Aqui detectamos e recriamos — sem isso, o primeiro
+    checkout em produção falharia para todo usuário que já testou.
+    """
+    if user.stripe_customer_id:
+        try:
+            cust = stripe.Customer.retrieve(user.stripe_customer_id)
+            if not getattr(cust, "deleted", False):
+                return user.stripe_customer_id
+            log.warning("Customer %s excluído no Stripe — recriando", user.stripe_customer_id)
+        except Exception:  # noqa: BLE001 — inclui "No such customer" (troca test<->live)
+            log.warning(
+                "Customer %s inválido no modo atual (virada test/live?) — recriando",
+                user.stripe_customer_id,
+            )
+    customer = stripe.Customer.create(email=user.email, metadata={"user_id": str(user.id)})
+    user.stripe_customer_id = customer.id
+    db.commit()
+    return customer.id
+
+
 # ---------- Planos (público, para a página de preços) ----------
 @router.get("/plans")
 def list_plans():
@@ -111,14 +137,11 @@ def create_checkout(
     stripe = _stripe()
     s = get_settings()
 
-    if not user.stripe_customer_id:
-        customer = stripe.Customer.create(email=user.email, metadata={"user_id": str(user.id)})
-        user.stripe_customer_id = customer.id
-        db.commit()
+    customer_id = _ensure_customer(stripe, db, user)
 
     session = stripe.checkout.Session.create(
         mode="subscription",
-        customer=user.stripe_customer_id,
+        customer=customer_id,
         line_items=[{"price": price, "quantity": 1}],
         subscription_data={
             "metadata": {"user_id": str(user.id), "plan": payload.plan},
@@ -133,14 +156,18 @@ def create_checkout(
 
 # ---------- Portal (gerenciar/cancelar assinatura) ----------
 @router.post("/portal")
-def customer_portal(user: User = Depends(get_current_user)):
+def customer_portal(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     if not user.stripe_customer_id:
         raise HTTPException(400, "Sem assinatura para gerenciar")
     stripe = _stripe()
     s = get_settings()
-    session = stripe.billing_portal.Session.create(
-        customer=user.stripe_customer_id, return_url=f"{s.FRONTEND_APP_URL}/",
-    )
+    try:
+        session = stripe.billing_portal.Session.create(
+            customer=user.stripe_customer_id, return_url=f"{s.FRONTEND_APP_URL}/",
+        )
+    except Exception:  # noqa: BLE001 — customer de outro modo (test/live)
+        log.warning("Portal indisponível p/ customer %s (modo trocado?)", user.stripe_customer_id)
+        raise HTTPException(409, "Assinatura não encontrada — assine novamente para gerenciar")
     return {"url": session.url}
 
 

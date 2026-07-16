@@ -361,3 +361,38 @@ class TestLGPD:
             assert ok.strip().upper() == "EXCLUIR"
         for nao in ("sim", "delete", "", "exclui"):
             assert nao.strip().upper() != "EXCLUIR"
+
+
+class TestViradaTestLive:
+    """Customer criado em modo teste não existe em live. Sem tratar, o primeiro
+    checkout em produção quebra com 'No such customer' para quem já testou."""
+
+    def test_recria_customer_invalido_e_reutiliza_valido(self):
+        from app.routers.billing import _ensure_customer
+
+        class FakeDB:
+            def commit(self): pass
+
+        class FakeUser:
+            email = "x@t.com"
+            id = "uid"
+            stripe_customer_id = "cus_TEST_velho"
+
+        class S:
+            class Customer:
+                @staticmethod
+                def retrieve(cid):
+                    if cid.startswith("cus_TEST"):
+                        raise Exception("No such customer")
+                    class C: deleted = False
+                    return C()
+                @staticmethod
+                def create(email, metadata):
+                    class C: id = "cus_NOVO"
+                    return C()
+
+        u = FakeUser()
+        assert _ensure_customer(S, FakeDB(), u) == "cus_NOVO"   # inválido -> recria
+        assert u.stripe_customer_id == "cus_NOVO"               # e persiste
+        u.stripe_customer_id = "cus_LIVE_ok"
+        assert _ensure_customer(S, FakeDB(), u) == "cus_LIVE_ok"  # válido -> reutiliza
