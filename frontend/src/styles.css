@@ -501,11 +501,23 @@ textarea:focus, input:focus, select:focus, button:focus-visible {
 .lp-plano li::before { content: "✓"; position: absolute; left: 0; color: var(--st-published); font-weight: 700; }
 .lp-plano li.nao { color: var(--st-muted); }
 .lp-plano li.nao::before { content: "—"; color: var(--st-muted); }
-.lp-indica {
-  margin-top: 26px; padding: 18px 20px; background: var(--st-published-bg); border-radius: 10px;
-  font-size: 14.5px; line-height: 1.6; color: var(--st-published);
+/* Escada de indicação: os degraus crescem — a forma conta a história */
+.lp-escada { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: end; margin-top: 30px; }
+.lp-degrau {
+  background: #fff; border: 1px solid var(--linha); border-radius: 12px;
+  padding: 22px 20px; display: flex; flex-direction: column; gap: 4px;
 }
-.lp-indica strong { color: var(--st-published); }
+.lp-degrau:nth-child(2) { padding-block: 30px; }
+.lp-degrau.alto { padding-block: 40px; border-color: var(--st-published); border-width: 2px; }
+.lp-degrau-n {
+  font-family: var(--font-display); font-size: 44px; font-weight: 700;
+  line-height: 1; letter-spacing: -0.04em; color: var(--tinta);
+}
+.lp-degrau.alto .lp-degrau-n { color: var(--st-published); }
+.lp-degrau-label { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--grafite); }
+.lp-degrau strong { font-size: 17px; margin-top: 6px; }
+.lp-degrau.alto strong { color: var(--st-published); }
+.lp-escada-nota { margin-top: 16px; font-size: 13.5px; color: var(--grafite); font-style: italic; }
 
 /* Fechamento */
 .lp-fechamento { background: var(--tinta); color: #fff; text-align: center; padding: 84px 40px; }
@@ -529,6 +541,8 @@ textarea:focus, input:focus, select:focus, button:focus-visible {
   .lp-secao { padding: 52px 20px; }
   .lp-etapas { grid-template-columns: 1fr; gap: 26px; }
   .lp-teses { grid-template-columns: 1fr; gap: 26px; }
+  .lp-escada { grid-template-columns: 1fr; gap: 12px; }
+  .lp-degrau, .lp-degrau:nth-child(2), .lp-degrau.alto { padding-block: 18px; }
   .lp-rodape { padding: 24px 20px; flex-direction: column; align-items: flex-start; }
 }
 

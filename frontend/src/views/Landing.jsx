@@ -40,6 +40,7 @@ export default function Landing() {
         <nav>
           <a href="#como">Como funciona</a>
           <a href="#planos">Planos</a>
+          <a href="#indique">Indique e ganhe</a>
           <a className="lp-btn ghost" href={entrar(false)}>Entrar</a>
           <a className="lp-btn" href={entrar(true)}>Criar conta</a>
         </nav>
@@ -64,7 +65,8 @@ export default function Landing() {
           </div>
           {ref && (
             <p className="lp-ref-aviso">
-              Você chegou por indicação — ao assinar, ganha <strong>15 dias extras</strong>.
+              🎁 Você chegou pelo convite de um assinante — ao assinar qualquer plano, ganha{" "}
+              <strong>15 dias extras</strong>, por conta dele.
             </p>
           )}
         </div>
@@ -236,13 +238,36 @@ export default function Landing() {
           {!planos && <p className="lp-mono">carregando planos…</p>}
         </div>
 
-        {planos && (
-          <p className="lp-indica">
-            <strong>Indique e ganhe:</strong> a cada 3 amigos que assinarem pelo seu link, 1 mês
-            grátis. 10 amigos, 6 meses. 16, um ano inteiro. E quem entra pelo seu convite ganha
-            15 dias extras.
-          </p>
-        )}
+      </section>
+
+      {/* ===== Indicação: aqui é o lugar — depois do preço, quando a conta está sendo feita ===== */}
+      <section className="lp-secao lp-fundo" id="indique">
+        <p className="lp-slug">Indique e ganhe</p>
+        <h2>O Posthink pode se pagar sozinho.</h2>
+        <p className="lp-sub-secao">
+          Assinantes recebem um link pessoal. A cada amigo que assina por ele, você sobe na
+          escada — e quem entra pelo seu convite ganha 15 dias extras de presente.
+        </p>
+        <div className="lp-escada">
+          <div className="lp-degrau">
+            <span className="lp-degrau-n">3</span>
+            <span className="lp-degrau-label">amigos assinantes</span>
+            <strong>1 mês grátis</strong>
+          </div>
+          <div className="lp-degrau">
+            <span className="lp-degrau-n">10</span>
+            <span className="lp-degrau-label">amigos assinantes</span>
+            <strong>6 meses grátis</strong>
+          </div>
+          <div className="lp-degrau alto">
+            <span className="lp-degrau-n">16</span>
+            <span className="lp-degrau-label">amigos assinantes</span>
+            <strong>1 ano inteiro</strong>
+          </div>
+        </div>
+        <p className="lp-escada-nota">
+          Só conta amigo que vira assinante de verdade — nada de cadastro fantasma.
+        </p>
       </section>
 
       <section className="lp-fechamento">
