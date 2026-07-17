@@ -100,3 +100,15 @@ def get_current_user(
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="Não autenticado")
     return user
+
+
+def require_subscription(user=Depends(get_current_user)):
+    """Endpoints que consomem recursos pagos (IA, publicação) exigem assinatura.
+
+    402 Payment Required: o frontend usa esse código para mostrar o paywall.
+    """
+    from app.services.plans import has_active_subscription
+
+    if not has_active_subscription(user):
+        raise HTTPException(402, "Assine um plano para usar o Posthink")
+    return user

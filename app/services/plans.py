@@ -45,6 +45,16 @@ def plan_of(user) -> Plan:
     return PLANS["free"]
 
 
+def has_active_subscription(user) -> bool:
+    """Sem assinatura ativa (ou crédito de indicação vigente), não há serviço.
+
+    Não existe plano gratuito: o núcleo do produto (gerar com IA, conectar o
+    LinkedIn, publicar) custa dinheiro real por uso. 'free' aqui significa
+    'sem assinatura', não 'plano grátis'.
+    """
+    return plan_of(user).key != "free"
+
+
 def require_feature(user, feature: str) -> bool:
     return getattr(plan_of(user), feature, False)
 

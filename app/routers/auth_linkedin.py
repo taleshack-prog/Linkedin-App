@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.database import get_db
 from app.models import LinkedInAccount, User
-from app.security import encrypt, get_current_user
+from app.security import encrypt, get_current_user, require_subscription
 from app.services import linkedin_client as li
 
 router = APIRouter(prefix="/auth/linkedin", tags=["oauth"])
@@ -28,7 +28,7 @@ def _sign(value: str) -> str:
 
 
 @router.get("/login")
-def login(user: User = Depends(get_current_user)):
+def login(user: User = Depends(require_subscription)):
     state = f"{user.id}.{_sign(str(user.id))}"
     return {"authorize_url": li.build_authorize_url(state)}
 

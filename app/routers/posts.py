@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from app.database import get_db
 from app.models import Post, PostStatus, User
 from app.schemas import PostApprove, PostOut, PostUpdate
-from app.security import get_current_user
+from app.security import get_current_user, require_subscription
 from app.services import image_generator
 from app.services.plans import require_feature
 
@@ -58,7 +58,7 @@ def approve_post(
     post_id: uuid.UUID,
     payload: PostApprove,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_subscription),   # publicar é o serviço: exige assinatura
 ):
     """Humano no loop: nada vai ao LinkedIn sem aprovação explícita + horário."""
     post = _own_post(post_id, db, user)

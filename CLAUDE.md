@@ -99,6 +99,17 @@ Feature do plano Pro+ (`text_formatting`).
 - `/privacidade` -> Política (LGPD + exigência do LinkedIn).
 - vercel.json faz o rewrite SPA — sem ele, URL direta dá 404.
 
+## Assinatura obrigatória (não há plano gratuito)
+O núcleo custa API por uso (Anthropic/OpenAI), então SEM assinatura ativa não há
+serviço. `require_subscription` (app/security.py) devolve 402 e protege:
+briefs create/regenerate, posts approve, auth_linkedin login e imagem-IA.
+Leitura (billing/plans, billing/status, listagens) fica aberta para o paywall
+funcionar. `scan_due_posts` também pula posts de quem não tem plano ativo —
+o post fica em 'approved' e volta a publicar se o cliente reativar.
+Frontend: features.plan === "free" -> <Paywall />, com espera do webhook
+(polling ~20s) ao voltar do checkout, senão quem ACABOU de pagar veria o
+paywall de novo.
+
 ## Roadmap
 - [x] Pauta com material de referência (PDF/DOCX/TXT/MD/CSV -> texto extraído no prompt)
 - [x] Perfil de marca (brand_profiles): contexto do autor injetado em toda geração

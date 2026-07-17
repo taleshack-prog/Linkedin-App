@@ -9,6 +9,7 @@ import Profile from "./views/Profile.jsx";
 import Billing from "./views/Billing.jsx";
 import Privacy from "./views/Privacy.jsx";
 import Landing from "./views/Landing.jsx";
+import Paywall from "./views/Paywall.jsx";
 
 // A navegação É o pipeline: os estágios do post são os itens do menu.
 const STAGES = [
@@ -29,6 +30,7 @@ export default function App() {
   const [counts, setCounts] = useState({});
   const [accounts, setAccounts] = useState([]);
   const [features, setFeatures] = useState({});
+  const [carregando, setCarregando] = useState(true);   // evita piscar o paywall p/ quem já paga
   const [refreshKey, setRefreshKey] = useState(0);
 
   const refresh = useCallback(async () => {
@@ -39,9 +41,11 @@ export default function App() {
       setCounts(c);
       setAccounts(accs);
       setFeatures(st || {});
+      setCarregando(false);
       setRefreshKey((k) => k + 1);
     } catch {
       /* 401 já redireciona via api.js */
+      setCarregando(false);
     }
   }, []);
 
@@ -55,6 +59,14 @@ export default function App() {
     const path = typeof window !== "undefined" ? window.location.pathname : "/";
     if (path === "/" || path === "") return <Landing />;
     return <Login onLogin={() => { window.location.href = "/"; }} />;
+  }
+
+  // Sem assinatura ativa, não há serviço: o núcleo custa API por uso.
+  if (carregando) {
+    return <div className="paywall"><div className="paywall-box confirmando"><p>Carregando…</p></div></div>;
+  }
+  if (features.plan === "free") {
+    return <Paywall onAtivou={() => { setCarregando(true); refresh(); }} />;
   }
 
   const stage = STAGES.find((s) => s.key === view);

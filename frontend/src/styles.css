@@ -534,3 +534,22 @@ textarea:focus, input:focus, select:focus, button:focus-visible {
 
 .login-voltar { display: inline-block; font-size: 13px; color: var(--ink-soft); margin-bottom: 10px; text-decoration: none; }
 .login-voltar:hover { color: var(--action); }
+
+
+/* ===== Paywall: assinatura obrigatória ===== */
+.paywall { background: var(--bg); min-height: 100vh; padding: 40px 20px; }
+.paywall-box { max-width: 1000px; margin: 0 auto; }
+.paywall-box > header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 34px;
+}
+.paywall-box h1 { font-family: var(--font-display); font-size: 32px; font-weight: 700; margin: 0 0 8px; }
+.paywall-lede { color: var(--ink-soft); font-size: 16px; margin: 0 0 24px; }
+.paywall-lede strong { color: var(--ink); }
+.paywall-sair {
+  background: none; border: none; color: var(--ink-soft); font-size: 13.5px;
+  text-decoration: underline; cursor: pointer; font-family: var(--font-body);
+}
+.paywall-rodape { margin-top: 24px; font-size: 13px; color: var(--st-muted); text-align: center; }
+.paywall-box.confirmando { text-align: center; padding-top: 18vh; }
+.paywall-box.confirmando h1 { margin-bottom: 6px; }
+.paywall-box.confirmando p { color: var(--ink-soft); }

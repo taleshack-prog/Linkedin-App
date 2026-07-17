@@ -18,7 +18,7 @@ from sqlalchemy import select
 
 from app.config import get_settings
 from app.database import SessionLocal
-from app.models import LinkedInAccount, Post, PostStatus, PublishLog
+from app.models import LinkedInAccount, Post, PostStatus, PublishLog, User
 from app.security import decrypt, encrypt
 from app.services import linkedin_client as li
 from app.tasks.celery_app import celery
@@ -60,6 +60,16 @@ def scan_due_posts():
         due = db.execute(stmt).scalars().all()
         ids = []
         for post in due:
+            # Assinatura cancelada/expirada: não publicamos. O post fica em
+            # 'approved' e volta a ser publicável quando o plano for reativado —
+            # nada é destruído, mas não há serviço sem assinatura.
+            from app.services.plans import has_active_subscription
+
+            owner = db.get(User, post.user_id)
+            if not owner or not has_active_subscription(owner):
+                log.info("Post %s adiado: assinatura inativa (%s)", post.id,
+                         owner.email if owner else "usuário removido")
+                continue
             post.status = PostStatus.publishing
             ids.append(str(post.id))
         db.commit()

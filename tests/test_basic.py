@@ -436,3 +436,39 @@ class TestLandingPublica:
         from app.routers import billing
         src = inspect.getsource(billing.list_plans)
         assert "get_current_user" not in src
+
+
+class TestAssinaturaObrigatoria:
+    """Não existe plano gratuito: o núcleo (gerar/publicar) custa API por uso.
+    Este teste guarda a porta — se alguém abrir de novo, quebra aqui."""
+
+    def test_has_active_subscription(self):
+        from datetime import datetime, timedelta, timezone
+        from app.services.plans import has_active_subscription
+
+        class U:
+            def __init__(self, plan, until=None):
+                self.plan, self.plan_until = plan, until
+
+        agora = datetime.now(timezone.utc)
+        assert has_active_subscription(U("starter", agora + timedelta(days=1)))
+        assert has_active_subscription(U("pro", None))          # sem validade = vitalício
+        assert not has_active_subscription(U("free"))
+        assert not has_active_subscription(U("pro", agora - timedelta(days=1)))  # vencido
+
+    def test_endpoints_que_custam_dinheiro_exigem_assinatura(self):
+        import inspect
+        from app.routers import auth_linkedin, briefs, posts
+
+        # gerar/regerar chamam a Anthropic; aprovar publica; conectar é o serviço
+        for fn in (briefs.create_brief, briefs.regenerate_brief,
+                   posts.approve_post, auth_linkedin.login):
+            src = inspect.getsource(fn)
+            assert "require_subscription" in src, f"{fn.__name__} está aberto!"
+
+    def test_leitura_continua_liberada_para_o_paywall(self):
+        import inspect
+        from app.routers import billing
+        # o paywall precisa listar planos e ver o status
+        assert "require_subscription" not in inspect.getsource(billing.list_plans)
+        assert "require_subscription" not in inspect.getsource(billing.status)

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import ContentBrief, LinkedInAccount, User
-from app.security import get_current_user
+from app.security import get_current_user, require_subscription
 from app.services.plans import require_feature
 from app.services.text_extractor import ExtractionError, extract_text
 from app.tasks.generation_tasks import generate_from_brief
@@ -56,7 +56,7 @@ async def create_brief(
     use_profile: bool = Form(default=True),
     source_file: UploadFile | None = File(default=None),
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_subscription),   # gerar custa API: exige assinatura
 ):
     """Cria a pauta. Com arquivo de referência (PDF/DOCX/TXT/MD/CSV), a IA baseia
     os posts naquele conteúdo e usa a web apenas para complementar."""
@@ -149,7 +149,7 @@ def edit_brief(
 def regenerate_brief(
     brief_id: uuid.UUID,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_subscription),   # regerar custa API: exige assinatura
 ):
     """Gera novamente (retry de falha ou nova rodada após editar).
 
