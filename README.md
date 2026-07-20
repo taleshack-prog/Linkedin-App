@@ -22,7 +22,7 @@ beat 6h  --> refresh_expiring_tokens (renovação proativa)
 ```
 linkpost-ai/
 ├── CLAUDE.md                     # contexto p/ Claude Code (invariantes, restrições da API)
-├── db/schema.sql                 # schema Postgres (multi-tenant)
+├── alembic/                      # migrations Alembic (fonte da verdade do schema)
 ├── app/
 │   ├── main.py / config.py / database.py / models.py / schemas.py / security.py
 │   ├── routers/    auth_linkedin.py, briefs.py, posts.py
@@ -43,7 +43,7 @@ linkpost-ai/
    ```bash
    python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
    ```
-3. `docker compose up` (aplica `db/schema.sql` no primeiro boot do Postgres).
+3. `docker compose up` (a api roda `alembic upgrade head` no boot e cria o schema).
 4. Criar usuário + API key:
    ```bash
    python3 << 'PYEOF'
