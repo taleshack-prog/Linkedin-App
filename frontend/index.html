@@ -3,13 +3,104 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Posthink — Mesa editorial</title>
+
+    <!-- ===== SEO base ===== -->
+    <title>Posthink — IA para posts de LinkedIn, com aprovação humana</title>
+    <meta
+      name="description"
+      content="O Posthink pesquisa o tema, escreve no seu tom e publica no LinkedIn pela API oficial, no horário que você marcar. Nada vai ao ar sem a sua aprovação."
+    />
+    <meta
+      name="keywords"
+      content="posts para LinkedIn com IA, agendamento de LinkedIn, criação de conteúdo LinkedIn, ghostwriter com IA, automação LinkedIn API oficial"
+    />
+    <meta name="author" content="Hack Tech Farm" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="canonical" href="https://posthink.com.br/" />
+    <meta name="theme-color" content="#f2f5f9" />
+
+    <!-- ===== Open Graph (LinkedIn, WhatsApp, Facebook) ===== -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Posthink" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:title" content="Posthink — a IA escreve, você continua sendo o autor" />
+    <meta
+      property="og:description"
+      content="Pesquisa o tema, escreve no seu tom e publica no LinkedIn pela API oficial. Nada vai ao ar sem você aprovar."
+    />
+    <meta property="og:url" content="https://posthink.com.br/" />
+    <meta property="og:image" content="https://posthink.com.br/og-cover.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Posthink — mesa editorial de LinkedIn com IA" />
+
+    <!-- ===== Twitter / X ===== -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Posthink — a IA escreve, você continua sendo o autor" />
+    <meta
+      name="twitter:description"
+      content="Pesquisa o tema, escreve no seu tom e publica no LinkedIn pela API oficial. Nada vai ao ar sem você aprovar."
+    />
+    <meta name="twitter:image" content="https://posthink.com.br/og-cover.png" />
+
+    <!-- ===== Ícones (adicionar os arquivos em frontend/public/) ===== -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- ===== Fontes (mantido igual ao original) ===== -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
+
+    <!-- ===== Dados estruturados (JSON-LD) ===== -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://posthink.com.br/#org",
+            "name": "Hack Tech Farm",
+            "url": "https://posthink.com.br/",
+            "logo": "https://posthink.com.br/logo.png",
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Porto Alegre",
+              "addressRegion": "RS",
+              "addressCountry": "BR"
+            }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://posthink.com.br/#site",
+            "name": "Posthink",
+            "url": "https://posthink.com.br/",
+            "inLanguage": "pt-BR",
+            "publisher": { "@id": "https://posthink.com.br/#org" }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "name": "Posthink",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web",
+            "inLanguage": "pt-BR",
+            "description": "Ferramenta que gera posts de LinkedIn com IA (pesquisa na web + redação no seu tom) e publica pela API oficial do LinkedIn, sempre com aprovação humana.",
+            "offers": {
+              "@type": "AggregateOffer",
+              "priceCurrency": "BRL",
+              "lowPrice": "20.00",
+              "highPrice": "100.00",
+              "offerCount": "3"
+            },
+            "publisher": { "@id": "https://posthink.com.br/#org" }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
