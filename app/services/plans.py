@@ -1,7 +1,7 @@
 """Planos, features e regras de acesso — fonte única da verdade sobre o que
 cada plano libera. Usado por gating de endpoints e pela página de preços.
 
-Planos (mensal, BRL): free (sem assinatura) | starter 37 | pro 87 | agency 257
+Planos (mensal, BRL): free (sem assinatura) | starter 20 | pro 45,70 | agency 100
 """
 from dataclasses import dataclass
 from datetime import datetime, timezone

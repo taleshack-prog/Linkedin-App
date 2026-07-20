@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     # Geração de imagem por IA (opcional) — provedor plugável: "gemini" | "openai"
     IMAGE_PROVIDER: str = "gemini"
     GEMINI_API_KEY: str = ""
-    GEMINI_IMAGE_MODEL: str = "gemini-3.1-flash-image-preview"
+    GEMINI_IMAGE_MODEL: str = "gemini-2.5-flash-image"
     OPENAI_API_KEY: str = ""
     OPENAI_IMAGE_MODEL: str = "gpt-image-1-mini"
     OPENAI_IMAGE_QUALITY: str = "medium"                # low | medium | high
@@ -40,9 +40,9 @@ class Settings(BaseSettings):
     # Stripe (billing)
     STRIPE_SECRET_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
-    STRIPE_PRICE_STARTER: str = ""       # price_... do plano Starter (R$37)
-    STRIPE_PRICE_PRO: str = ""           # price_... do plano Pro (R$87)
-    STRIPE_PRICE_AGENCY: str = ""        # price_... do plano Agency (mensal)
+    STRIPE_PRICE_STARTER: str = ""       # price_... do plano Starter (R$20)
+    STRIPE_PRICE_PRO: str = ""           # price_... do plano Pro (R$45,70)
+    STRIPE_PRICE_AGENCY: str = ""        # price_... do plano Agency (R$100 mensal)
     STRIPE_PRICE_STARTER_ANNUAL: str = ""   # price_... anual
     STRIPE_PRICE_PRO_ANNUAL: str = ""
     STRIPE_PRICE_AGENCY_ANNUAL: str = ""
