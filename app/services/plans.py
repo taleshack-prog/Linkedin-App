@@ -18,13 +18,14 @@ class Plan:
     doc_upload: bool                # material de referência (upload de docs)
     brand_profile: bool             # perfil de marca
     text_formatting: bool           # negrito/itálico/mono (Unicode) no editor
+    video: bool                     # upload de vídeo (LinkedIn) — Pro/Agency
 
 
 PLANS: dict[str, Plan] = {
-    "free":    Plan("free",    "Gratuito",     0, price_cents_annual=0,      linkedin_accounts=1,  ai_images=False, doc_upload=False, brand_profile=False, text_formatting=False),
-    "starter": Plan("starter", "Starter",   2000, price_cents_annual=20000,  linkedin_accounts=1,  ai_images=False, doc_upload=False, brand_profile=True,  text_formatting=False),
-    "pro":     Plan("pro",     "Pro",       4570, price_cents_annual=45700,  linkedin_accounts=2,  ai_images=True,  doc_upload=True,  brand_profile=True,  text_formatting=True),
-    "agency":  Plan("agency",  "Agency",   10000, price_cents_annual=100000, linkedin_accounts=10, ai_images=True,  doc_upload=True,  brand_profile=True,  text_formatting=True),
+    "free":    Plan("free",    "Sem assinatura",     0, price_cents_annual=0,      linkedin_accounts=1,  ai_images=False, doc_upload=False, brand_profile=False, text_formatting=False, video=False),
+    "starter": Plan("starter", "Starter",   2000, price_cents_annual=20000,  linkedin_accounts=1,  ai_images=False, doc_upload=False, brand_profile=True,  text_formatting=False, video=False),
+    "pro":     Plan("pro",     "Pro",       4570, price_cents_annual=45700,  linkedin_accounts=2,  ai_images=True,  doc_upload=True,  brand_profile=True,  text_formatting=True, video=True),
+    "agency":  Plan("agency",  "Agency",   10000, price_cents_annual=100000, linkedin_accounts=10, ai_images=True,  doc_upload=True,  brand_profile=True,  text_formatting=True, video=True),
 }
 
 # Bônus do INDICADO: dias extras ao assinar via link de indicação
