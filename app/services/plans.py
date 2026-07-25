@@ -19,13 +19,14 @@ class Plan:
     brand_profile: bool             # perfil de marca
     text_formatting: bool           # negrito/itálico/mono (Unicode) no editor
     video: bool                     # upload de vídeo (LinkedIn) — Pro/Agency
+    max_images: int                 # nº máx. de imagens por post (carrossel) — Pro/Agency = 4
 
 
 PLANS: dict[str, Plan] = {
-    "free":    Plan("free",    "Sem assinatura",     0, price_cents_annual=0,      linkedin_accounts=1,  ai_images=False, doc_upload=False, brand_profile=False, text_formatting=False, video=False),
-    "starter": Plan("starter", "Starter",   2000, price_cents_annual=20000,  linkedin_accounts=1,  ai_images=False, doc_upload=False, brand_profile=True,  text_formatting=False, video=False),
-    "pro":     Plan("pro",     "Pro",       4570, price_cents_annual=45700,  linkedin_accounts=2,  ai_images=True,  doc_upload=True,  brand_profile=True,  text_formatting=True, video=True),
-    "agency":  Plan("agency",  "Agency",   10000, price_cents_annual=100000, linkedin_accounts=10, ai_images=True,  doc_upload=True,  brand_profile=True,  text_formatting=True, video=True),
+    "free":    Plan("free",    "Sem assinatura",     0, price_cents_annual=0,      linkedin_accounts=1,  ai_images=False, doc_upload=False, brand_profile=False, text_formatting=False, video=False, max_images=1),
+    "starter": Plan("starter", "Starter",   2000, price_cents_annual=20000,  linkedin_accounts=1,  ai_images=False, doc_upload=False, brand_profile=True,  text_formatting=False, video=False, max_images=1),
+    "pro":     Plan("pro",     "Pro",       4570, price_cents_annual=45700,  linkedin_accounts=2,  ai_images=True,  doc_upload=True,  brand_profile=True,  text_formatting=True, video=True, max_images=4),
+    "agency":  Plan("agency",  "Agency",   10000, price_cents_annual=100000, linkedin_accounts=10, ai_images=True,  doc_upload=True,  brand_profile=True,  text_formatting=True, video=True, max_images=4),
 }
 
 # Bônus do INDICADO: dias extras ao assinar via link de indicação
@@ -58,6 +59,11 @@ def has_active_subscription(user) -> bool:
 
 def require_feature(user, feature: str) -> bool:
     return getattr(plan_of(user), feature, False)
+
+
+def max_images_for(user) -> int:
+    """Nº máximo de imagens por post do plano do usuário (1 = imagem única)."""
+    return plan_of(user).max_images
 
 
 def months_earned(active_referrals: int) -> int:
