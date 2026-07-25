@@ -18,6 +18,10 @@ celery.conf.update(
             "task": "app.tasks.publish_tasks.refresh_expiring_tokens",
             "schedule": 6 * 60 * 60,  # a cada 6h
         },
+        "poll-processing-videos": {
+            "task": "app.tasks.publish_tasks.poll_processing_videos",
+            "schedule": 120,  # a cada 2 min: checa vídeos em processamento
+        },
     },
 )
 celery.autodiscover_tasks(["app.tasks"])

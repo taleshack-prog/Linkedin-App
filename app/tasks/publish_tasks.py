@@ -193,3 +193,40 @@ def refresh_expiring_tokens():
                 log.warning("Falha ao renovar token da conta %s: %s", acc.id, exc)
     finally:
         db.close()
+
+
+@celery.task
+def poll_processing_videos():
+    """Varre posts com vídeo em processamento e atualiza o status via LinkedIn.
+
+    Robusto: um post com erro não interrompe os outros; a próxima varredura
+    tenta de novo. Roda no beat (a cada 2 min).
+    """
+    db = SessionLocal()
+    try:
+        posts = (
+            db.query(Post)
+            .filter(Post.video_status == "processing", Post.video_urn.isnot(None))
+            .limit(50)
+            .all()
+        )
+        for post in posts:
+            account = db.get(LinkedInAccount, post.linkedin_account_id)
+            if not account:
+                continue
+            try:
+                token = _ensure_fresh_token(db, account)
+                status = li.get_video_status(token, post.video_urn)
+            except Exception as exc:  # noqa: BLE001
+                log.warning("Falha ao consultar status do vídeo do post %s: %s", post.id, exc)
+                continue
+            if status == "AVAILABLE":
+                post.video_status = "available"
+                db.commit()
+            elif "FAILED" in status:
+                post.video_status = "failed"
+                post.last_error = f"Processamento do vídeo falhou no LinkedIn ({status})"
+                db.commit()
+            # senão: continua 'processing' — próxima varredura checa de novo
+    finally:
+        db.close()
