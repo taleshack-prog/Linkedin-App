@@ -72,6 +72,7 @@ function PostCard({ post, onChanged, canFormat }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const fileInput = useRef(null);
+  const videoInput = useRef(null);
   const commentaryRef = useRef(null);
   const [fmtNotice, setFmtNotice] = useState(null);
   const [imgVersion, setImgVersion] = useState(0);
@@ -118,6 +119,9 @@ function PostCard({ post, onChanged, canFormat }) {
       await api.deletePostImage(post.id);
       setImgVersion((v) => v + 1);
     });
+
+  const uploadVideo = (file) => run(() => api.uploadPostVideo(post.id, file));
+  const removeVideo = () => run(() => api.deletePostVideo(post.id));
 
   async function generateAiImage() {
     setGenerating(true);
@@ -195,6 +199,15 @@ function PostCard({ post, onChanged, canFormat }) {
       ) : (
         <>
           {post.has_image && <PostImage postId={post.id} version={imgVersion} />}
+          {post.has_video && (
+            <div className="mono" style={{ marginBottom: 8 }}>
+              {post.video_status === "available"
+                ? "Vídeo anexado — pronto para publicar"
+                : post.video_status === "failed"
+                ? "Vídeo: falha no processamento do LinkedIn"
+                : "Vídeo: processando no LinkedIn…"}
+            </div>
+          )}
           <p className="commentary">{post.commentary}</p>
           {post.hashtags.length > 0 && (
             <div className="tags">{post.hashtags.map((h) => (h.startsWith("#") ? h : `#${h}`)).join(" ")}</div>
@@ -229,6 +242,25 @@ function PostCard({ post, onChanged, canFormat }) {
                 <button className="btn" onClick={() => setAiOpen((o) => !o)} disabled={busy || generating}>
                   {generating ? "Gerando imagem…" : "Gerar imagem (IA)"}
                 </button>
+                <input
+                  ref={videoInput}
+                  type="file"
+                  accept="video/mp4"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) uploadVideo(f);
+                    e.target.value = "";
+                  }}
+                />
+                <button className="btn" onClick={() => videoInput.current?.click()} disabled={busy}>
+                  {post.has_video ? "Trocar vídeo" : "Adicionar vídeo"}
+                </button>
+                {post.has_video && (
+                  <button className="btn danger" onClick={removeVideo} disabled={busy}>
+                    Remover vídeo
+                  </button>
+                )}
               </>
             )}
             {post.status === "draft" && (

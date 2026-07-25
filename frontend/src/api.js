@@ -132,6 +132,17 @@ export const api = {
     if (!resp.ok) throw new Error(`Erro ${resp.status}`);
     return resp.blob();
   },
+  uploadPostVideo: async (id, file) => {
+    const form = new FormData();
+    form.append("file", file);
+    const resp = await fetch(`${BASE}/posts/${id}/video`, { method: "POST", headers: authHeaders(), body: form });
+    if (!resp.ok) {
+      const data = await resp.json().catch(() => ({}));
+      throw new Error(data.detail || `Erro ${resp.status}`);
+    }
+    return resp.json();
+  },
+  deletePostVideo: (id) => request(`/posts/${id}/video`, { method: "DELETE" }),
 };
 
 export const STATUS_LABEL = {
