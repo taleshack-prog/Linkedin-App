@@ -127,6 +127,22 @@ def publish_post(self, post_id: str):
             return
 
         account = db.get(LinkedInAccount, post.linkedin_account_id)
+
+        # Vídeo: só publica quando o LinkedIn terminou de processar.
+        if post.video_urn:
+            if post.video_status == "failed":
+                post.status = PostStatus.failed
+                post.last_error = "Vídeo falhou no processamento do LinkedIn"
+                db.commit()
+                return
+            if post.video_status != "available":
+                # ainda processando: reagenda sem gastar tentativa de publicação
+                post.status = PostStatus.approved
+                post.publish_at = datetime.now(timezone.utc) + timedelta(minutes=3)
+                db.commit()
+                log.info("Post %s aguardando processamento do vídeo; reagendado", post_id)
+                return
+
         post.attempts += 1
 
         try:
@@ -147,7 +163,8 @@ def publish_post(self, post_id: str):
                 li.upload_image_binary(upload_url, token, post.image_data)
 
             urn, status_code, meta = li.publish_text_post(
-                token, account.person_urn, commentary, image_urn=image_urn
+                token, account.person_urn, commentary, image_urn=image_urn,
+                video_urn=post.video_urn, video_title=post.video_title,
             )
 
             post.status = PostStatus.published
