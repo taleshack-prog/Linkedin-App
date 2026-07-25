@@ -137,6 +137,9 @@ class Post(Base):
     )
 
     account: Mapped["LinkedInAccount"] = relationship()
+    images: Mapped[list["PostImage"]] = relationship(
+        order_by="PostImage.ordinal", cascade="all, delete-orphan", passive_deletes=True
+    )
 
     @property
     def has_image(self) -> bool:
@@ -146,6 +149,19 @@ class Post(Base):
     @property
     def has_video(self) -> bool:
         return self.video_urn is not None
+
+
+class PostImage(Base):
+    __tablename__ = "post_images"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    post_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("posts.id", ondelete="CASCADE"))
+    ordinal: Mapped[int] = mapped_column(SmallInteger, default=0)
+    image_data: Mapped[bytes] = deferred(mapped_column(LargeBinary, nullable=False))
+    image_mime: Mapped[str] = mapped_column(String)
+    image_filename: Mapped[str | None] = mapped_column(String, nullable=True)
+    alt_text: Mapped[str | None] = mapped_column(String, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class PublishLog(Base):
