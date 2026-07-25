@@ -18,7 +18,7 @@ from sqlalchemy import select
 
 from app.config import get_settings
 from app.database import SessionLocal
-from app.models import LinkedInAccount, Post, PostStatus, PublishLog, User
+from app.models import LinkedInAccount, Post, PostImage, PostStatus, PublishLog, User
 from app.security import decrypt, encrypt
 from app.services import linkedin_client as li
 from app.tasks.celery_app import celery
@@ -156,14 +156,27 @@ def publish_post(self, post_id: str):
 
             token = _ensure_fresh_token(db, account)
 
-            # Imagem opcional: sobe para o LinkedIn antes do post (Images API, 2 etapas)
-            image_urn = None
-            if post.image_mime:
-                upload_url, image_urn = li.initialize_image_upload(token, account.person_urn)
+            # Imagens: sobe cada uma para o LinkedIn (Images API), preservando a ordem.
+            image_urns = []
+            imgs = (
+                db.query(PostImage)
+                .filter(PostImage.post_id == post.id)
+                .order_by(PostImage.ordinal)
+                .all()
+            )
+            if imgs:
+                for im in imgs:
+                    upload_url, img_urn = li.initialize_image_upload(token, account.person_urn)
+                    li.upload_image_binary(upload_url, token, im.image_data)
+                    image_urns.append({"id": img_urn, "alt": im.alt_text})
+            elif post.image_mime:  # fallback: imagem única legada (pré-unificação)
+                upload_url, img_urn = li.initialize_image_upload(token, account.person_urn)
                 li.upload_image_binary(upload_url, token, post.image_data)
+                image_urns.append({"id": img_urn})
 
             urn, status_code, meta = li.publish_text_post(
-                token, account.person_urn, commentary, image_urn=image_urn,
+                token, account.person_urn, commentary,
+                image_urns=image_urns or None,
                 video_urn=post.video_urn, video_title=post.video_title,
             )
 
