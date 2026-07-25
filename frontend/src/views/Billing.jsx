@@ -9,6 +9,7 @@ const FEATURES = [
   ["Upload de imagens", () => true],
   ["Perfil de marca", (p) => p.brand_profile],
   ["Imagem por IA", (p) => p.ai_images],
+  ["Upload de vídeo", (p) => p.video],
   ["Material de referência (docs)", (p) => p.doc_upload],
   ["Formatação de texto (negrito/itálico)", (p) => p.text_formatting],
   ["Contas LinkedIn", (p) => p.linkedin_accounts],

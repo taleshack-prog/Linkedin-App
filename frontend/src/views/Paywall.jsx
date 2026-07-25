@@ -113,6 +113,7 @@ export default function Paywall({ onAtivou }) {
                 <li>Upload de imagens</li>
                 <li className={p.brand_profile ? "" : "nao"}>Perfil de marca</li>
                 <li className={p.ai_images ? "" : "nao"}>Imagem por IA</li>
+                <li className={p.video ? "" : "nao"}>Upload de vídeo</li>
                 <li className={p.doc_upload ? "" : "nao"}>Seus documentos como referência</li>
                 <li className={p.text_formatting ? "" : "nao"}>Formatação de texto</li>
                 <li>{p.linkedin_accounts} {p.linkedin_accounts > 1 ? "contas" : "conta"} do LinkedIn</li>

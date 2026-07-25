@@ -90,6 +90,7 @@ def list_plans():
                 "linkedin_accounts": p.linkedin_accounts, "ai_images": p.ai_images,
                 "doc_upload": p.doc_upload, "brand_profile": p.brand_profile,
                 "text_formatting": p.text_formatting,
+                "video": p.video,
             }
             for p in PLANS.values() if p.key != "free"
         ],
@@ -110,6 +111,7 @@ class BillingStatus(BaseModel):
     text_formatting: bool = False
     ai_images: bool = False
     doc_upload: bool = False
+    video: bool = False
 
 
 @router.get("/status", response_model=BillingStatus)
@@ -125,6 +127,7 @@ def status(db: Session = Depends(get_db), user: User = Depends(get_current_user)
         text_formatting=p.text_formatting,
         ai_images=p.ai_images,
         doc_upload=p.doc_upload,
+        video=p.video,
     )
 
 
