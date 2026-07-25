@@ -21,6 +21,7 @@ USERINFO_URL = "https://api.linkedin.com/v2/userinfo"
 REVOKE_URL = "https://www.linkedin.com/oauth/v2/revoke"
 POSTS_URL = "https://api.linkedin.com/rest/posts"
 IMAGES_URL = "https://api.linkedin.com/rest/images"
+VIDEOS_URL = "https://api.linkedin.com/rest/videos"
 
 # Caracteres reservados do formato "little text" do LinkedIn — precisam de escape
 # no campo commentary, senão a API retorna 400 ou renderiza errado.
@@ -138,7 +139,81 @@ def upload_image_binary(upload_url: str, access_token: str, data: bytes) -> None
         raise LinkedInError(resp.status_code, resp.text)
 
 
-def build_post_payload(person_urn: str, commentary: str, image_urn: str | None = None) -> dict:
+def initialize_video_upload(access_token: str, person_urn: str, file_size_bytes: int) -> dict:
+    """Videos API etapa 1: registra o upload. Retorna dict com video_urn, upload_token
+    e instructions (lista de partes: {uploadUrl, firstByte, lastByte})."""
+    resp = httpx.post(
+        f"{VIDEOS_URL}?action=initializeUpload",
+        json={"initializeUploadRequest": {"owner": person_urn, "fileSizeBytes": file_size_bytes}},
+        headers=_versioned_headers(access_token),
+        timeout=30,
+    )
+    if resp.status_code != 200:
+        raise LinkedInError(resp.status_code, resp.text)
+    value = resp.json().get("value", {})
+    video_urn = value.get("video")
+    instructions = value.get("uploadInstructions") or []
+    if not video_urn or not instructions:
+        raise LinkedInError(resp.status_code, f"initializeUpload sem video/instructions: {resp.text[:300]}")
+    return {"video_urn": video_urn, "upload_token": value.get("uploadToken", ""), "instructions": instructions}
+
+
+def upload_video_parts(access_token: str, file_path: str, instructions: list[dict]) -> list[str]:
+    """Videos API etapa 2: PUT de cada parte (faixa de bytes) na sua uploadUrl.
+    Retorna os ETags na ordem das partes (obrigatorios e ordenados no finalize)."""
+    etags: list[str] = []
+    with open(file_path, "rb") as f:
+        for part in instructions:
+            first, last = int(part["firstByte"]), int(part["lastByte"])
+            f.seek(first)
+            chunk = f.read(last - first + 1)
+            resp = httpx.put(
+                part["uploadUrl"],
+                content=chunk,
+                headers={"Authorization": f"Bearer {access_token}",
+                         "Content-Type": "application/octet-stream"},
+                timeout=120,
+            )
+            if resp.status_code not in (200, 201):
+                raise LinkedInError(resp.status_code, resp.text)
+            etag = resp.headers.get("etag") or resp.headers.get("ETag")
+            if not etag:
+                raise LinkedInError(resp.status_code, "parte de video sem ETag na resposta")
+            etags.append(etag.strip('"'))
+    return etags
+
+
+def finalize_video_upload(access_token: str, video_urn: str, upload_token: str, etags: list[str]) -> None:
+    """Videos API etapa 3: finaliza, ligando as partes pelos ETags. Sucesso = 200/201."""
+    resp = httpx.post(
+        f"{VIDEOS_URL}?action=finalizeUpload",
+        json={"finalizeUploadRequest": {
+            "video": video_urn, "uploadToken": upload_token, "uploadedPartIds": etags,
+        }},
+        headers=_versioned_headers(access_token),
+        timeout=30,
+    )
+    if resp.status_code not in (200, 201):
+        raise LinkedInError(resp.status_code, resp.text)
+
+
+def get_video_status(access_token: str, video_urn: str) -> str:
+    """Videos API etapa 4: consulta status do processamento.
+    Retorna o status em maiusculas (PROCESSING | AVAILABLE | PROCESSING_FAILED | WAITING_UPLOAD)."""
+    from urllib.parse import quote
+    resp = httpx.get(
+        f"{VIDEOS_URL}/{quote(video_urn, safe='')}",
+        headers=_versioned_headers(access_token),
+        timeout=30,
+    )
+    if resp.status_code != 200:
+        raise LinkedInError(resp.status_code, resp.text)
+    data = resp.json()
+    return (data.get("status") or data.get("value", {}).get("status") or "").upper()
+
+
+def build_post_payload(person_urn: str, commentary: str, image_urn: str | None = None,
+                       video_urn: str | None = None, video_title: str | None = None) -> dict:
     """Payload do POST /rest/posts. Com imagem, referencia o URN em content.media.id."""
     payload = {
         "author": person_urn,
@@ -152,16 +227,21 @@ def build_post_payload(person_urn: str, commentary: str, image_urn: str | None =
         "lifecycleState": "PUBLISHED",
         "isReshareDisabledByAuthor": False,
     }
-    if image_urn:
-        payload["content"] = {"media": {"id": image_urn}}
+    media_urn = video_urn or image_urn
+    if media_urn:
+        media = {"id": media_urn}
+        if video_urn and video_title:
+            media["title"] = video_title
+        payload["content"] = {"media": media}
     return payload
 
 
 def publish_text_post(
-    access_token: str, person_urn: str, commentary: str, image_urn: str | None = None
+    access_token: str, person_urn: str, commentary: str, image_urn: str | None = None,
+    video_urn: str | None = None, video_title: str | None = None
 ) -> tuple[str, int, dict]:
     """Publica post (texto ou texto+imagem). Retorna (post_urn, http_status, meta p/ log)."""
-    payload = build_post_payload(person_urn, commentary, image_urn)
+    payload = build_post_payload(person_urn, commentary, image_urn, video_urn, video_title)
     resp = httpx.post(
         POSTS_URL,
         json=payload,
