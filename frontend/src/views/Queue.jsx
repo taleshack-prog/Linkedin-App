@@ -14,17 +14,121 @@ function localToIso(v) {
   return new Date(v).toISOString();
 }
 
-function PostImage({ postId, version }) {
-  const [src, setSrc] = useState(null);
+function PostImages({ postId, version, editable, onChanged, onError }) {
+  const [items, setItems] = useState([]);
+  const [urls, setUrls] = useState({});
+  const [reloadKey, setReloadKey] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const fileInput = useRef(null);
+
   useEffect(() => {
-    let url;
-    api.fetchPostImageBlob(postId)
-      .then((blob) => { url = URL.createObjectURL(blob); setSrc(url); })
-      .catch(() => setSrc(null));
-    return () => url && URL.revokeObjectURL(url);
-  }, [postId, version]);
-  if (!src) return null;
-  return <img className="post-image" src={src} alt="Imagem anexada ao post" />;
+    let active = true;
+    const created = [];
+    api.postImages(postId)
+      .then(async (list) => {
+        const map = {};
+        for (const it of list) {
+          try {
+            const u = URL.createObjectURL(await api.fetchPostImageBlobById(postId, it.id));
+            map[it.id] = u;
+            created.push(u);
+          } catch {}
+        }
+        if (!active) {
+          created.forEach(URL.revokeObjectURL);
+          return;
+        }
+        setItems(list);
+        setUrls(map);
+      })
+      .catch(() => {
+        if (active) {
+          setItems([]);
+          setUrls({});
+        }
+      });
+    return () => {
+      active = false;
+      created.forEach(URL.revokeObjectURL);
+    };
+  }, [postId, version, reloadKey]);
+
+  const add = async (file) => {
+    setBusy(true);
+    onError && onError("");
+    try {
+      await api.addPostImage(postId, file);
+      setReloadKey((k) => k + 1);
+      onChanged && onChanged();
+    } catch (e) {
+      onError && onError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const remove = async (imageId) => {
+    setBusy(true);
+    onError && onError("");
+    try {
+      await api.deletePostImageById(postId, imageId);
+      setReloadKey((k) => k + 1);
+      onChanged && onChanged();
+    } catch (e) {
+      onError && onError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!editable && items.length === 0) return null;
+  return (
+    <div className="post-images" style={{ marginBottom: 8 }}>
+      {items.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+          {items.map((it) => (
+            <div key={it.id} style={{ position: "relative" }}>
+              {urls[it.id] && (
+                <img
+                  src={urls[it.id]}
+                  alt={it.alt_text || "Imagem do post"}
+                  style={{ width: 96, height: 96, objectFit: "cover", borderRadius: 8, display: "block" }}
+                />
+              )}
+              {editable && (
+                <button
+                  className="btn danger"
+                  onClick={() => remove(it.id)}
+                  disabled={busy}
+                  title="Remover"
+                  style={{ position: "absolute", top: 2, right: 2, padding: "0 7px", lineHeight: "20px" }}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      {editable && (
+        <>
+          <input
+            ref={fileInput}
+            type="file"
+            accept="image/jpeg,image/png,image/gif"
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) add(f);
+              e.target.value = "";
+            }}
+          />
+          <button className="btn" onClick={() => fileInput.current?.click()} disabled={busy}>
+            Adicionar imagem
+          </button>
+        </>
+      )}
+    </div>
+  );
 }
 
 function FormatBar({ textareaRef, value, onChange, onNotice }) {
@@ -198,7 +302,7 @@ function PostCard({ post, onChanged, canFormat }) {
         </>
       ) : (
         <>
-          {post.has_image && <PostImage postId={post.id} version={imgVersion} />}
+          <PostImages postId={post.id} version={imgVersion} editable={editable} onChanged={onChanged} onError={setError} />
           {post.has_video && (
             <div className="mono" style={{ marginBottom: 8 }}>
               {post.video_status === "available"
@@ -220,25 +324,6 @@ function PostCard({ post, onChanged, canFormat }) {
             )}
             {editable && (
               <>
-                <input
-                  ref={fileInput}
-                  type="file"
-                  accept="image/jpeg,image/png,image/gif"
-                  style={{ display: "none" }}
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) uploadImage(f);
-                    e.target.value = "";
-                  }}
-                />
-                <button className="btn" onClick={() => fileInput.current?.click()} disabled={busy}>
-                  {post.has_image ? "Trocar imagem" : "Adicionar imagem"}
-                </button>
-                {post.has_image && (
-                  <button className="btn danger" onClick={removeImage} disabled={busy}>
-                    Remover imagem
-                  </button>
-                )}
                 <button className="btn" onClick={() => setAiOpen((o) => !o)} disabled={busy || generating}>
                   {generating ? "Gerando imagem…" : "Gerar imagem (IA)"}
                 </button>

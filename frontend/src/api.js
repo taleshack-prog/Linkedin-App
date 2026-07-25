@@ -132,6 +132,23 @@ export const api = {
     if (!resp.ok) throw new Error(`Erro ${resp.status}`);
     return resp.blob();
   },
+  postImages: (id) => request(`/posts/${id}/images`),
+  addPostImage: async (id, file) => {
+    const form = new FormData();
+    form.append("file", file);
+    const resp = await fetch(`${BASE}/posts/${id}/images`, { method: "POST", headers: authHeaders(), body: form });
+    if (!resp.ok) {
+      const data = await resp.json().catch(() => ({}));
+      throw new Error(data.detail || `Erro ${resp.status}`);
+    }
+    return resp.json();
+  },
+  deletePostImageById: (id, imageId) => request(`/posts/${id}/images/${imageId}`, { method: "DELETE" }),
+  fetchPostImageBlobById: async (id, imageId) => {
+    const resp = await fetch(`${BASE}/posts/${id}/images/${imageId}`, { headers: authHeaders() });
+    if (!resp.ok) throw new Error(`Erro ${resp.status}`);
+    return resp.blob();
+  },
   uploadPostVideo: async (id, file) => {
     const form = new FormData();
     form.append("file", file);
