@@ -28,6 +28,8 @@ class PostOut(BaseModel):
     linkedin_post_urn: str | None
     last_error: str | None
     has_image: bool = False
+    has_video: bool = False
+    video_status: str | None = None
 
 
 class PostUpdate(BaseModel):

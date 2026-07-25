@@ -1,3 +1,5 @@
+import os
+import tempfile
 import uuid
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
@@ -7,11 +9,12 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 
 from app.database import get_db
-from app.models import Post, PostStatus, User
+from app.models import LinkedInAccount, Post, PostStatus, User
 from app.schemas import PostApprove, PostOut, PostUpdate
 from app.security import get_current_user, require_subscription
-from app.services import image_generator
+from app.services import image_generator, linkedin_client as li
 from app.services.plans import require_feature
+from app.tasks.publish_tasks import _ensure_fresh_token
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -110,6 +113,9 @@ async def upload_post_image(
     post.image_data = data
     post.image_mime = file.content_type
     post.image_filename = file.filename
+    post.video_urn = None
+    post.video_status = None
+    post.video_title = None
     db.commit()
     return post
 
@@ -171,5 +177,89 @@ def generate_post_image(
     post.image_data = data
     post.image_mime = mime
     post.image_filename = "gemini-ai.png"
+    post.video_urn = None
+    post.video_status = None
+    post.video_title = None
+    db.commit()
+    return post
+
+
+# ============ Vídeo opcional do post (Pro/Agency) ============
+ALLOWED_VIDEO_MIMES = {"video/mp4", "application/mp4"}
+MAX_VIDEO_BYTES = 100 * 1024 * 1024  # 100 MB (v1: upload síncrono via API)
+
+
+@router.post("/{post_id}/video", response_model=PostOut)
+async def upload_post_video(
+    post_id: uuid.UUID,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Anexa um vídeo MP4 (até 100 MB). Sobe pro LinkedIn na hora (guarda só a URN);
+    a publicação continua no horário agendado. Disponível em Pro/Agency."""
+    if not require_feature(user, "video"):
+        raise HTTPException(402, "Upload de vídeo está disponível nos planos Pro e Agency")
+    post = _own_post(post_id, db, user)
+    if post.status not in (PostStatus.draft, PostStatus.approved):
+        raise HTTPException(409, "Post não é mais editável")
+    if file.content_type not in ALLOWED_VIDEO_MIMES:
+        raise HTTPException(415, "Formato não suportado — envie um vídeo MP4")
+    account = db.get(LinkedInAccount, post.linkedin_account_id)
+    if not account:
+        raise HTTPException(404, "Conta LinkedIn do post não encontrada")
+
+    tmp = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
+    size = 0
+    try:
+        while True:
+            chunk = await file.read(1024 * 1024)
+            if not chunk:
+                break
+            size += len(chunk)
+            if size > MAX_VIDEO_BYTES:
+                raise HTTPException(413, "Vídeo acima do limite de 100 MB")
+            tmp.write(chunk)
+        tmp.close()
+        if size == 0:
+            raise HTTPException(400, "Arquivo vazio")
+        try:
+            token = _ensure_fresh_token(db, account)
+        except li.LinkedInError:
+            raise HTTPException(409, "Sua conta LinkedIn precisa ser reconectada")
+        try:
+            init = li.initialize_video_upload(token, account.person_urn, size)
+            etags = li.upload_video_parts(token, tmp.name, init["instructions"])
+            li.finalize_video_upload(token, init["video_urn"], init["upload_token"], etags)
+        except li.LinkedInError as exc:
+            raise HTTPException(502, f"LinkedIn recusou o upload do vídeo: {exc}")
+    finally:
+        try:
+            os.unlink(tmp.name)
+        except OSError:
+            pass
+
+    post.video_urn = init["video_urn"]
+    post.video_status = "processing"
+    post.video_title = (file.filename or "video")[:200]
+    post.image_data = None
+    post.image_mime = None
+    post.image_filename = None
+    db.commit()
+    return post
+
+
+@router.delete("/{post_id}/video", response_model=PostOut)
+def delete_post_video(
+    post_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    post = _own_post(post_id, db, user)
+    if post.status not in (PostStatus.draft, PostStatus.approved):
+        raise HTTPException(409, "Post não é mais editável")
+    post.video_urn = None
+    post.video_status = None
+    post.video_title = None
     db.commit()
     return post
