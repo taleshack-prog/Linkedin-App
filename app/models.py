@@ -143,8 +143,8 @@ class Post(Base):
 
     @property
     def has_image(self) -> bool:
-        # image_mime funciona como flag — evita tocar o blob deferred
-        return self.image_mime is not None
+        # Tem imagem se existe pelo menos uma linha em post_images (fonte única)
+        return len(self.images) > 0
 
     @property
     def has_video(self) -> bool:
