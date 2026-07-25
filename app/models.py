@@ -115,6 +115,9 @@ class Post(Base):
     image_data: Mapped[bytes | None] = deferred(mapped_column(LargeBinary, nullable=True))
     image_mime: Mapped[str | None] = mapped_column(String, nullable=True)
     image_filename: Mapped[str | None] = mapped_column(String, nullable=True)
+    video_urn: Mapped[str | None] = mapped_column(String, nullable=True)
+    video_status: Mapped[str | None] = mapped_column(String, nullable=True)  # processing | available | failed
+    video_title: Mapped[str | None] = mapped_column(String, nullable=True)
     status: Mapped[PostStatus] = mapped_column(
         Enum(
             PostStatus,
@@ -139,6 +142,10 @@ class Post(Base):
     def has_image(self) -> bool:
         # image_mime funciona como flag — evita tocar o blob deferred
         return self.image_mime is not None
+
+    @property
+    def has_video(self) -> bool:
+        return self.video_urn is not None
 
 
 class PublishLog(Base):
