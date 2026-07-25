@@ -213,8 +213,13 @@ def get_video_status(access_token: str, video_urn: str) -> str:
 
 
 def build_post_payload(person_urn: str, commentary: str, image_urn: str | None = None,
-                       video_urn: str | None = None, video_title: str | None = None) -> dict:
-    """Payload do POST /rest/posts. Com imagem, referencia o URN em content.media.id."""
+                       video_urn: str | None = None, video_title: str | None = None,
+                       image_urns: list[dict] | None = None) -> dict:
+    """Payload do POST /rest/posts.
+
+    Conteúdo, em ordem de prioridade: vídeo > múltiplas imagens (2-4 -> multiImage)
+    > imagem única (media). image_urns: lista de {"id": urn, "alt": texto|None}.
+    """
     payload = {
         "author": person_urn,
         "commentary": escape_commentary(commentary),
@@ -227,12 +232,21 @@ def build_post_payload(person_urn: str, commentary: str, image_urn: str | None =
         "lifecycleState": "PUBLISHED",
         "isReshareDisabledByAuthor": False,
     }
-    media_urn = video_urn or image_urn
-    if media_urn:
-        media = {"id": media_urn}
-        if video_urn and video_title:
+    if video_urn:
+        media = {"id": video_urn}
+        if video_title:
             media["title"] = video_title
         payload["content"] = {"media": media}
+    elif image_urns:
+        imgs = []
+        for it in image_urns:
+            img = {"id": it["id"]}
+            if it.get("alt"):
+                img["altText"] = it["alt"]
+            imgs.append(img)
+        payload["content"] = {"media": imgs[0]} if len(imgs) == 1 else {"multiImage": {"images": imgs}}
+    elif image_urn:
+        payload["content"] = {"media": {"id": image_urn}}
     return payload
 
 
