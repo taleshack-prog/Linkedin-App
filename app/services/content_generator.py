@@ -181,12 +181,22 @@ def generate_posts(
 
     data = extract_posts_payload(msg)
 
-    posts = data.get("posts", [])
+    # Normaliza formatos que o modelo às vezes devolve (lista de strings,
+    # objeto único em vez de lista, ou post no topo sem a chave "posts").
+    if isinstance(data, dict) and "commentary" in data and "posts" not in data:
+        data = {"posts": [data]}
+    posts = data.get("posts", []) if isinstance(data, dict) else data
+    if isinstance(posts, dict):
+        posts = [posts]
     if not posts:
         raise ValueError("Modelo não retornou posts")
+    normalized = []
     for p in posts:
-        if not p.get("commentary"):
-            raise ValueError("Post sem commentary")
+        if isinstance(p, str):
+            p = {"commentary": p}
+        if not isinstance(p, dict) or not p.get("commentary"):
+            raise ValueError("Post sem commentary válido")
         p.setdefault("hashtags", [])
         p.setdefault("sources", [])
-    return posts[:count]
+        normalized.append(p)
+    return normalized[:count]
