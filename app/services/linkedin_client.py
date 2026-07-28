@@ -252,10 +252,11 @@ def build_post_payload(person_urn: str, commentary: str, image_urn: str | None =
 
 def publish_text_post(
     access_token: str, person_urn: str, commentary: str, image_urn: str | None = None,
-    video_urn: str | None = None, video_title: str | None = None
+    video_urn: str | None = None, video_title: str | None = None,
+    image_urns: list[dict] | None = None
 ) -> tuple[str, int, dict]:
     """Publica post (texto ou texto+imagem). Retorna (post_urn, http_status, meta p/ log)."""
-    payload = build_post_payload(person_urn, commentary, image_urn, video_urn, video_title)
+    payload = build_post_payload(person_urn, commentary, image_urn, video_urn, video_title, image_urns=image_urns)
     resp = httpx.post(
         POSTS_URL,
         json=payload,
