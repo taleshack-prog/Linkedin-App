@@ -54,6 +54,13 @@ function PostImages({ postId, version, editable, onChanged, onError }) {
   }, [postId, version, reloadKey]);
 
   const add = async (file) => {
+    if (file.size > 8 * 1024 * 1024) {
+      onError &&
+        onError(
+          "Imagem acima de 8 MB. Comprima ou reduza a resolução antes de enviar (apps como TinyPNG, Squoosh, ou o próprio redimensionar do celular resolvem)."
+        );
+      return;
+    }
     setBusy(true);
     onError && onError("");
     try {
@@ -125,6 +132,9 @@ function PostImages({ postId, version, editable, onChanged, onError }) {
           <button className="btn" onClick={() => fileInput.current?.click()} disabled={busy}>
             Adicionar imagem
           </button>
+          <div className="mono" style={{ fontSize: 12, opacity: 0.7, marginTop: 4 }}>
+            JPG, PNG ou GIF · até 8 MB por imagem · até 4 no Pro/Agency
+          </div>
         </>
       )}
     </div>

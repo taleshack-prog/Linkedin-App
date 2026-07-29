@@ -124,7 +124,7 @@ async def _read_image_upload(file: UploadFile) -> bytes:
         raise HTTPException(415, "Formato não suportado — use JPG, PNG ou GIF")
     data = await file.read()
     if len(data) > MAX_IMAGE_BYTES:
-        raise HTTPException(413, "Imagem acima de 8 MB")
+        raise HTTPException(413, "Imagem acima de 8 MB. Comprima ou reduza a resolução antes de enviar — o LinkedIn recomprime imagens grandes de qualquer forma.")
     if not data:
         raise HTTPException(400, "Arquivo vazio")
     return data
