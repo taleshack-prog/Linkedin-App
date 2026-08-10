@@ -40,12 +40,16 @@ class Settings(BaseSettings):
     # Stripe (billing)
     STRIPE_SECRET_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
-    STRIPE_PRICE_STARTER: str = ""       # price_... do plano Starter (R$20)
-    STRIPE_PRICE_PRO: str = ""           # price_... do plano Pro (R$45,70)
-    STRIPE_PRICE_AGENCY: str = ""        # price_... do plano Agency (R$100 mensal)
+    STRIPE_PRICE_STARTER: str = ""       # price_... do plano Starter (R$25)
+    STRIPE_PRICE_PRO: str = ""           # price_... do plano Pro (R$50)
+    STRIPE_PRICE_AGENCY: str = ""        # price_... do plano Agency (R$200 mensal)
     STRIPE_PRICE_STARTER_ANNUAL: str = ""   # price_... anual
     STRIPE_PRICE_PRO_ANNUAL: str = ""
     STRIPE_PRICE_AGENCY_ANNUAL: str = ""
+    STRIPE_PRICE_AGENCY_PRO: str = ""        # price_... Agency Pro (R$500 mensal)
+    STRIPE_PRICE_AGENCY_PRO_ANNUAL: str = ""
+    STRIPE_PRICE_AGENCY_MAX: str = ""        # price_... Agency Max (R$1000 mensal)
+    STRIPE_PRICE_AGENCY_MAX_ANNUAL: str = ""
     GUARANTEE_DAYS: int = 7                           # garantia de devolução (CDC art.49: mínimo 7)
     FRONTEND_APP_URL: str = "https://posthink.com.br" # p/ redirect pós-checkout do Stripe
 

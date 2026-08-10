@@ -42,11 +42,15 @@ def _price_id(plan_key: str, cycle: str = "monthly") -> str | None:
         "starter": s.STRIPE_PRICE_STARTER,
         "pro": s.STRIPE_PRICE_PRO,
         "agency": s.STRIPE_PRICE_AGENCY,
+        "agency_pro": s.STRIPE_PRICE_AGENCY_PRO,
+        "agency_max": s.STRIPE_PRICE_AGENCY_MAX,
     }
     anual = {
         "starter": s.STRIPE_PRICE_STARTER_ANNUAL,
         "pro": s.STRIPE_PRICE_PRO_ANNUAL,
         "agency": s.STRIPE_PRICE_AGENCY_ANNUAL,
+        "agency_pro": s.STRIPE_PRICE_AGENCY_PRO_ANNUAL,
+        "agency_max": s.STRIPE_PRICE_AGENCY_MAX_ANNUAL,
     }
     return (anual if cycle == "annual" else mensal).get(plan_key)
 
@@ -133,7 +137,7 @@ def status(db: Session = Depends(get_db), user: User = Depends(get_current_user)
 
 # ---------- Checkout ----------
 class CheckoutIn(BaseModel):
-    plan: str                      # starter | pro | agency
+    plan: str                      # starter | pro | agency | agency_pro | agency_max
     cycle: str = "monthly"         # monthly | annual
 
 
@@ -143,7 +147,7 @@ def create_checkout(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    if payload.plan not in ("starter", "pro", "agency"):
+    if payload.plan not in ("starter", "pro", "agency", "agency_pro", "agency_max"):
         raise HTTPException(400, "Plano inválido")
     if payload.cycle not in CYCLES:
         raise HTTPException(400, "Ciclo inválido (use monthly ou annual)")
