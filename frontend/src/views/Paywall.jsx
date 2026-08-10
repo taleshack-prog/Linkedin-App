@@ -108,7 +108,7 @@ export default function Paywall({ onAtivou }) {
                   : "cobrado mensalmente"}
               </p>
               <ul>
-                <li>Posts ilimitados, com pesquisa</li>
+                <li>{p.max_posts < 0 ? "Geração ilimitada de posts" : `${p.max_posts} posts gerados por mês`}, com pesquisa</li>
                 <li>Agendamento e publicação</li>
                 <li>Upload de imagens</li>
                 <li className={p.brand_profile ? "" : "nao"}>Perfil de marca</li>

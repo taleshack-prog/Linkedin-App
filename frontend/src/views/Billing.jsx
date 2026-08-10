@@ -4,7 +4,6 @@ import { api } from "../api.js";
 const brl = (cents) => (cents / 100).toFixed(2).replace(".", ",");
 
 const FEATURES = [
-  ["Geração de texto ilimitada", () => true],
   ["Agendamento e publicação", () => true],
   ["Upload de imagens", () => true],
   ["Perfil de marca", (p) => p.brand_profile],
@@ -111,6 +110,9 @@ export default function Billing() {
               </>
             )}
             <ul className="plan-features">
+              <li className="on">
+                {p.max_posts < 0 ? "Geração ilimitada de posts" : `${p.max_posts} posts gerados por mês`}
+              </li>
               {FEATURES.map(([label, fn]) => {
                 const v = fn(p);
                 return (
@@ -127,6 +129,9 @@ export default function Billing() {
           </div>
         ))}
       </div>
+      <p style={{ textAlign: "center", color: "var(--ink-soft)", fontSize: 13, marginTop: 10 }}>
+        &ldquo;posts gerados por mês&rdquo; = rascunhos criados pela IA (renova todo dia 1º). Agendar e publicar não têm limite.
+      </p>
 
       <div className="card" style={{ marginTop: 22 }}>
         <h3 style={{ fontSize: 18, marginBottom: 6 }}>Indique e ganhe</h3>

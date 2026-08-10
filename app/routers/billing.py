@@ -95,6 +95,7 @@ def list_plans():
                 "doc_upload": p.doc_upload, "brand_profile": p.brand_profile,
                 "text_formatting": p.text_formatting,
                 "video": p.video,
+                "max_posts": p.max_posts,
             }
             for p in PLANS.values() if p.key != "free"
         ],

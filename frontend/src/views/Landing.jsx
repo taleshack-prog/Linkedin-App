@@ -219,7 +219,7 @@ export default function Landing() {
                   : "cobrado mensalmente"}
               </p>
               <ul>
-                <li>Posts ilimitados, com pesquisa</li>
+                <li>{p.max_posts < 0 ? "Geração ilimitada de posts" : `${p.max_posts} posts gerados por mês`}, com pesquisa</li>
                 <li>Agendamento e publicação automática</li>
                 <li>Upload de imagens</li>
                 <li className={p.brand_profile ? "" : "nao"}>Perfil de marca</li>
@@ -238,6 +238,9 @@ export default function Landing() {
           ))}
           {!planos && <p className="lp-mono">carregando planos…</p>}
         </div>
+        <p className="lp-mono" style={{ textAlign: "center", marginTop: 14, opacity: 0.75 }}>
+          &ldquo;posts gerados por mês&rdquo; = rascunhos criados pela IA (renova todo dia 1º). Agendar e publicar não têm limite.
+        </p>
 
       </section>
 
