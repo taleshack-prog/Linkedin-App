@@ -9,6 +9,7 @@ from app.database import get_db
 from app.models import ContentBrief, LinkedInAccount, User
 from app.security import get_current_user, require_subscription
 from app.services.plans import require_feature
+from app.services.usage import generation_quota
 from app.services.text_extractor import ExtractionError, extract_text
 from app.tasks.generation_tasks import generate_from_brief
 
@@ -67,6 +68,10 @@ async def create_brief(
     )
     if not account:
         raise HTTPException(404, "Conta LinkedIn não encontrada para este usuário")
+
+    used, cap, remaining = generation_quota(db, user)
+    if cap >= 0 and remaining <= 0:
+        raise HTTPException(402, f"Voce atingiu o limite de {cap} posts gerados neste mes. Faca upgrade para gerar mais.")
 
     source_text = None
     source_filename = None
@@ -158,6 +163,10 @@ def regenerate_brief(
     brief = _own_brief(brief_id, db, user)
     if brief.status == "generating":
         raise HTTPException(409, "Pauta já está em geração")
+
+    used, cap, remaining = generation_quota(db, user)
+    if cap >= 0 and remaining <= 0:
+        raise HTTPException(402, f"Voce atingiu o limite de {cap} posts gerados neste mes. Faca upgrade para gerar mais.")
 
     account = None
     if brief.linkedin_account_id:
