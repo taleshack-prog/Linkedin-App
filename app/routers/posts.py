@@ -4,6 +4,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import Response
+from sqlalchemy import nulls_last
 from sqlalchemy.orm import Session, selectinload
 
 from pydantic import BaseModel, Field
@@ -51,7 +52,14 @@ def list_posts(
     q = db.query(Post).options(selectinload(Post.images)).filter_by(user_id=user.id)
     if status:
         q = q.filter(Post.status == status)
-    return q.order_by(Post.created_at.desc()).limit(100).all()
+    # Ordena cada aba pela data que importa nela.
+    if status == PostStatus.approved:
+        q = q.order_by(nulls_last(Post.publish_at.asc()))     # agendados: próximos a sair primeiro
+    elif status == PostStatus.published:
+        q = q.order_by(nulls_last(Post.published_at.desc()))  # publicados: mais recentes primeiro
+    else:
+        q = q.order_by(Post.created_at.desc())                # rascunhos: mais novos primeiro
+    return q.limit(100).all()
 
 
 @router.patch("/{post_id}", response_model=PostOut)
