@@ -148,6 +148,19 @@ def build_source_block(source_text: str | None) -> str:
     )
 
 
+MIN_COMMENTARY_CHARS = 30
+
+
+def _looks_like_real_post(text: str) -> bool:
+    """Rejeita conteúdo-lixo: '[', vazio, JSON quebrado, resposta cortada.
+    Um post real tem um mínimo de caracteres e de letras (não só símbolos)."""
+    t = (text or "").strip()
+    if len(t) < MIN_COMMENTARY_CHARS:
+        return False
+    letters = sum(1 for c in t if c.isalpha())
+    return letters >= 20
+
+
 def generate_posts(
     theme: str, instructions: str | None, count: int, language: str,
     profile: dict | None = None, source_text: str | None = None,
@@ -189,14 +202,23 @@ def generate_posts(
     if isinstance(posts, dict):
         posts = [posts]
     if not posts:
-        raise ValueError("Modelo não retornou posts")
+        raise ValueError("A geração não retornou posts. Tente novamente.")
     normalized = []
     for p in posts:
         if isinstance(p, str):
             p = {"commentary": p}
-        if not isinstance(p, dict) or not p.get("commentary"):
-            raise ValueError("Post sem commentary válido")
+        if not isinstance(p, dict):
+            continue
+        commentary = (p.get("commentary") or "").strip()
+        if not _looks_like_real_post(commentary):
+            continue  # descarta lixo (ex.: "[", vazio, resposta cortada por timeout)
+        p["commentary"] = commentary
         p.setdefault("hashtags", [])
         p.setdefault("sources", [])
         normalized.append(p)
+    if not normalized:
+        raise ValueError(
+            "A geração não produziu texto válido (resposta vazia ou incompleta). "
+            "Costuma ser instabilidade temporária — tente gerar novamente."
+        )
     return normalized[:count]
