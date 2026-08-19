@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     GEMINI_IMAGE_MODEL: str = "gemini-2.5-flash-image"
     OPENAI_API_KEY: str = ""
+    DEEPGRAM_API_KEY: str = ""            # STT (transcrição de voz) — Deepgram
     OPENAI_IMAGE_MODEL: str = "gpt-image-1-mini"
     OPENAI_IMAGE_QUALITY: str = "medium"                # low | medium | high
 

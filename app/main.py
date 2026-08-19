@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import accounts, auth, auth_linkedin, billing, briefs, posts, privacy, profile
+from app.routers import accounts, auth, auth_linkedin, billing, briefs, posts, privacy, profile, voice
 
 app = FastAPI(title="Posthink", version="1.0.0")
 
@@ -23,6 +23,7 @@ app.include_router(posts.router)
 app.include_router(profile.router)
 app.include_router(billing.router)
 app.include_router(privacy.router)
+app.include_router(voice.router)
 
 
 @app.get("/health")
