@@ -107,6 +107,10 @@ export default function Briefs({ accounts, onGenerated }) {
   const [accountId, setAccountId] = useState("");
   const [file, setFile] = useState(null);
   const [useProfile, setUseProfile] = useState(true);
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const mediaRef = useRef(null);
+  const chunksRef = useRef([]);
   const fileInput = useRef(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
@@ -155,6 +159,54 @@ export default function Briefs({ accounts, onGenerated }) {
     }
   }
 
+  function pickAudioMime() {
+    const opts = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
+    for (const m of opts) {
+      if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m;
+    }
+    return "";
+  }
+
+  async function startRecording() {
+    setError("");
+    setNotice("");
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { channelCount: 1, sampleRate: 16000, echoCancellation: true, noiseSuppression: true },
+      });
+      const mime = pickAudioMime();
+      const mr = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      chunksRef.current = [];
+      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      mr.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const type = (mr.mimeType || "audio/webm").split(";")[0];
+        const blob = new Blob(chunksRef.current, { type });
+        chunksRef.current = [];
+        setTranscribing(true);
+        try {
+          const res = await api.transcribeVoice(blob);
+          const t = (res && res.transcript) || "";
+          setTheme((prev) => (prev.trim() ? prev.trim() + " " + t : t));
+        } catch (e) {
+          setError(e.message);
+        } finally {
+          setTranscribing(false);
+        }
+      };
+      mr.start();
+      mediaRef.current = mr;
+      setRecording(true);
+    } catch {
+      setError("Não consegui acessar o microfone. Verifique a permissão do navegador.");
+    }
+  }
+
+  function stopRecording() {
+    try { if (mediaRef.current) mediaRef.current.stop(); } catch { /* noop */ }
+    setRecording(false);
+  }
+
   return (
     <>
       <header>
@@ -174,8 +226,21 @@ export default function Briefs({ accounts, onGenerated }) {
               id="theme"
               value={theme}
               onChange={(e) => setTheme(e.target.value)}
-              placeholder="ex.: tendências em Web3 no Brasil"
+              placeholder="ex.: tendências em Web3 no Brasil (ou fale a pauta)"
             />
+            <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 8 }}>
+              <button
+                type="button"
+                className="btn"
+                onClick={recording ? stopRecording : startRecording}
+                disabled={transcribing}
+                style={{ padding: "4px 12px", fontSize: 13 }}
+              >
+                {recording ? "⏹ Parar e transcrever" : transcribing ? "Transcrevendo…" : "🎤 Falar pauta"}
+              </button>
+              {recording && <span className="mono" style={{ color: "#d33" }}>● gravando…</span>}
+              {transcribing && <span className="mono" style={{ opacity: 0.7 }}>convertendo áudio em texto…</span>}
+            </div>
           </div>
           <div className="field">
             <label htmlFor="instr">Instruções (tom de voz, CTA, persona) — opcional</label>

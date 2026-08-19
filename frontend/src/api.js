@@ -109,6 +109,16 @@ export const api = {
     }
     return resp.json();
   },
+  transcribeVoice: async (blob) => {
+    const form = new FormData();
+    form.append("file", blob, "pauta.webm");
+    const resp = await fetch(`${BASE}/voice/transcribe`, { method: "POST", headers: authHeaders(), body: form });
+    if (!resp.ok) {
+      const data = await resp.json().catch(() => ({}));
+      throw new Error(typeof data.detail === "string" ? data.detail : `Erro ${resp.status}`);
+    }
+    return resp.json();
+  },
   posts: (status) => request(`/posts${status ? `?status=${status}` : ""}`),
   editPost: (id, payload) => request(`/posts/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   approvePost: (id, publishAt) =>
