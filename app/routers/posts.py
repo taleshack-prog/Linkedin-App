@@ -52,13 +52,16 @@ def list_posts(
     q = db.query(Post).options(selectinload(Post.images)).filter_by(user_id=user.id)
     if status:
         q = q.filter(Post.status == status)
-    # Ordena cada aba pela data que importa nela.
+    # Ordena cada aba pela data que importa nela. O Post.id no fim e o
+    # criterio de desempate ESTAVEL: sem ele, posts com a mesma data (ex.:
+    # gerados no mesmo lote) sao devolvidos na ordem fisica do Postgres, que
+    # MUDA quando o post e editado (MVCC) — fazendo o card "pular" na lista.
     if status == PostStatus.approved:
-        q = q.order_by(nulls_last(Post.publish_at.asc()))     # agendados: próximos a sair primeiro
+        q = q.order_by(nulls_last(Post.publish_at.asc()), Post.id)     # agendados: proximos a sair primeiro
     elif status == PostStatus.published:
-        q = q.order_by(nulls_last(Post.published_at.desc()))  # publicados: mais recentes primeiro
+        q = q.order_by(nulls_last(Post.published_at.desc()), Post.id)  # publicados: mais recentes primeiro
     else:
-        q = q.order_by(Post.created_at.desc())                # rascunhos: mais novos primeiro
+        q = q.order_by(Post.created_at.desc(), Post.id)               # rascunhos: mais novos primeiro
     return q.limit(100).all()
 
 
