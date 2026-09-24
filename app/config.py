@@ -60,6 +60,7 @@ class Settings(BaseSettings):
     MAX_PUBLISH_ATTEMPTS: int = 3
     TOKEN_REFRESH_MARGIN_DAYS: int = 7                # renova access token quando faltar menos que isso
     STALE_PUBLISHING_MINUTES: int = 15                # posts presos em 'publishing' voltam para a fila
+    MONITOR_TOKEN: str = ""                           # segredo do /health/summary (painel Hack Tech Farm)
     LINKEDIN_COMMENTARY_MAX_CHARS: int = 3000         # limite do LinkedIn para o campo commentary
 
 

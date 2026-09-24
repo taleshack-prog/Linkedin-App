@@ -33,6 +33,15 @@ def scan_due_posts():
     try:
         now = datetime.now(timezone.utc)
 
+        # Heartbeat p/ o /health/summary: prova que o beat agendou E o worker
+        # executou. O painel lê a idade desta chave para saber se estão vivos.
+        try:
+            import redis as _redis
+            _redis.from_url(s.REDIS_URL, socket_connect_timeout=2).set(
+                "posthink:hb:scan", now.isoformat(), ex=1800)
+        except Exception:
+            pass
+
         # 1) Resgate: posts presos em 'publishing' (worker caiu) voltam à fila.
         stale_limit = now - timedelta(minutes=s.STALE_PUBLISHING_MINUTES)
         stale = (
