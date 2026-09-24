@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://posthink.com.br/sitemap.xml
