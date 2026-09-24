@@ -15,6 +15,7 @@ from app.models import User
 from app.security import (
     create_token,
     get_current_user,
+    is_admin,
     hash_password,
     verify_password,
 )
@@ -65,6 +66,7 @@ class MeOut(BaseModel):
     plan: str
     referral_code: str | None
     has_password: bool = False
+    is_admin: bool = False
 
 
 class TokenOut(BaseModel):
@@ -79,6 +81,7 @@ def _me(user: User) -> MeOut:
         plan=user.plan,
         referral_code=user.referral_code,
         has_password=bool(user.password_hash),
+        is_admin=is_admin(user),
     )
 
 

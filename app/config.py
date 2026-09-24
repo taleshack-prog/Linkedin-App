@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str                                 # postgresql+psycopg://... (Railway)
     REDIS_URL: str = "redis://localhost:6379/0"       # broker/backend Celery (Railway Redis)
     FRONTEND_ORIGINS: str = "https://posthink.com.br" # origens CORS, separadas por vírgula
+    ADMIN_EMAILS: str = ""                            # e-mails com acesso ao painel de saúde (separados por vírgula)
 
     # LinkedIn OAuth (Developer Portal > sua app > Auth)
     LINKEDIN_CLIENT_ID: str

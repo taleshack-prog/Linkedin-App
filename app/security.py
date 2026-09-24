@@ -112,3 +112,19 @@ def require_subscription(user=Depends(get_current_user)):
     if not has_active_subscription(user):
         raise HTTPException(402, "Assine um plano para usar o Posthink")
     return user
+
+
+def admin_emails() -> set[str]:
+    raw = get_settings().ADMIN_EMAILS or ""
+    return {e.strip().lower() for e in raw.split(",") if e.strip()}
+
+
+def is_admin(user) -> bool:
+    return bool(user) and (getattr(user, "email", "") or "").lower() in admin_emails()
+
+
+def require_admin(user=Depends(get_current_user)):
+    """Somente e-mails em ADMIN_EMAILS acessam o painel de saúde."""
+    if not is_admin(user):
+        raise HTTPException(403, "Acesso restrito")
+    return user
