@@ -81,32 +81,24 @@ def check_redis():
 
 
 def check_worker():
-    try:
-        from app.tasks.celery_app import celery
-        pong = celery.control.ping(timeout=1.5) or []
-        if pong:
-            return _ck("worker", "ok", f"{len(pong)} worker(s)")
-        return _ck("worker", "down", "nenhum worker respondeu")
-    except Exception:
-        return _ck("worker", "degraded", "não foi possível pingar o worker")
-
-
-def check_beat():
+    """Worker + beat num sinal só: o heartbeat 'posthink:hb:scan' é gravado pelo
+    scan_due_posts — tarefa que o BEAT agenda e o WORKER executa. Fresco => os
+    dois estão vivos (mais confiável que ping do Celery a partir da API)."""
     try:
         import redis
         raw = redis.from_url(_s.REDIS_URL, socket_connect_timeout=2, socket_timeout=2).get("posthink:hb:scan")
         if not raw:
-            return _ck("beat", "down", "sem sinal do agendador")
+            return _ck("worker+beat", "down", "sem sinal do worker/agendador")
         last = datetime.fromisoformat(raw.decode() if isinstance(raw, bytes) else raw)
         age = int((datetime.now(timezone.utc) - last).total_seconds())
         interval = getattr(_s, "PUBLISH_SCAN_INTERVAL_SECONDS", 60)
         if age <= interval * 3 + 30:
-            return _ck("beat", "ok", f"último ciclo há {age}s")
+            return _ck("worker+beat", "ok", f"último ciclo há {age}s")
         if age <= 600:
-            return _ck("beat", "degraded", f"agendador atrasado ({age}s)")
-        return _ck("beat", "down", f"agendador parado ({age}s)")
+            return _ck("worker+beat", "degraded", f"atrasado ({age}s)")
+        return _ck("worker+beat", "down", f"parado ({age}s)")
     except Exception:
-        return _ck("beat", "degraded", "não foi possível verificar o agendador")
+        return _ck("worker+beat", "degraded", "não foi possível verificar worker/beat")
 
 
 def check_fila():
@@ -124,13 +116,12 @@ def check_fila():
 
 def check_linkedin():
     try:
-        soon = datetime.now(timezone.utc) + timedelta(days=3)
         with Session(bind=_check_engine) as db:
             n = db.query(func.count(LinkedInAccount.id)).filter(
-                (LinkedInAccount.status != "active") | (LinkedInAccount.access_expires_at <= soon)).scalar() or 0
+                LinkedInAccount.status != "active").scalar() or 0
         if n == 0:
-            return _ck("linkedin", "ok", "credenciais ok")
-        return _ck("linkedin", "degraded", f"{n} conta(s) p/ reautenticar ou expirando")
+            return _ck("linkedin", "ok", "contas ativas")
+        return _ck("linkedin", "degraded", f"{n} conta(s) precisam reconectar")
     except Exception:
         return _ck("linkedin", "degraded", "não foi possível verificar o LinkedIn")
 
@@ -147,7 +138,6 @@ CHECKS = [
     ("migracoes", check_migracoes),
     ("redis", check_redis),
     ("worker", check_worker),
-    ("beat", check_beat),
     ("fila", check_fila),
     ("linkedin", check_linkedin),
     ("config", check_config),
