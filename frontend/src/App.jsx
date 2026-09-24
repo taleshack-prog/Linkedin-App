@@ -10,6 +10,7 @@ import Billing from "./views/Billing.jsx";
 import Privacy from "./views/Privacy.jsx";
 import Landing from "./views/Landing.jsx";
 import Paywall from "./views/Paywall.jsx";
+import Health from "./views/Health.jsx";
 
 // A navegação É o pipeline: os estágios do post são os itens do menu.
 const STAGES = [
@@ -32,15 +33,17 @@ export default function App() {
   const [features, setFeatures] = useState({});
   const [carregando, setCarregando] = useState(true);   // evita piscar o paywall p/ quem já paga
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
-      const [all, accs, st] = await Promise.all([api.posts(), api.accounts(), api.billingStatus().catch(() => ({}))]);
+      const [all, accs, st, me] = await Promise.all([api.posts(), api.accounts(), api.billingStatus().catch(() => ({})), api.me().catch(() => ({}))]);
       const c = {};
       for (const p of all) c[p.status] = (c[p.status] || 0) + 1;
       setCounts(c);
       setAccounts(accs);
       setFeatures(st || {});
+      setIsAdmin(Boolean(me && me.is_admin));
       setCarregando(false);
       setRefreshKey((k) => k + 1);
     } catch {
@@ -113,6 +116,11 @@ export default function App() {
         <button className={`nav ${view === "billing" ? "active" : ""}`} onClick={() => setView("billing")}>
           Planos
         </button>
+        {isAdmin && (
+          <button className={`nav ${view === "health" ? "active" : ""}`} onClick={() => { setView("health"); }}>
+            Saúde
+          </button>
+        )}
 
         <div className="foot">
           <button onClick={() => { clearAuth(); setAuthed(false); }}>Sair</button>
@@ -134,6 +142,7 @@ export default function App() {
         {view === "accounts" && <Accounts accounts={accounts} onChanged={refresh} />}
         {view === "profile" && <Profile />}
         {view === "billing" && <Billing />}
+        {view === "health" && isAdmin && <Health />}
       </main>
     </div>
   );

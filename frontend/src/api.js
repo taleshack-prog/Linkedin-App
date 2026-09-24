@@ -82,6 +82,7 @@ export const api = {
     request("/auth/set-password", { method: "POST", body: JSON.stringify({ password }) }),
   me: () => request("/auth/me"),
   billingStatus: () => request("/billing/status"),
+  healthAdmin: () => request("/admin/health"),
   billingPlans: () => request("/billing/plans"),
   checkout: (plan, cycle = "monthly") =>
     request("/billing/checkout", { method: "POST", body: JSON.stringify({ plan, cycle }) }),
