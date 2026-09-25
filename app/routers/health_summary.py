@@ -117,8 +117,10 @@ def check_fila():
 def check_linkedin():
     try:
         with Session(bind=_check_engine) as db:
+            # Só 'needs_reauth' é alerta (quebrou, usuário precisa reconectar).
+            # 'revoked' é desligamento intencional — não acende o painel.
             n = db.query(func.count(LinkedInAccount.id)).filter(
-                LinkedInAccount.status != "active").scalar() or 0
+                LinkedInAccount.status == "needs_reauth").scalar() or 0
         if n == 0:
             return _ck("linkedin", "ok", "contas ativas")
         return _ck("linkedin", "degraded", f"{n} conta(s) precisam reconectar")
