@@ -19,7 +19,7 @@ export default function Landing() {
   const [planos, setPlanos] = useState(null);
   const [ciclo, setCiclo] = useState("annual");
 
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
   const ref = params.get("ref");
   const entrar = (criar) => {
     const p = new URLSearchParams();
