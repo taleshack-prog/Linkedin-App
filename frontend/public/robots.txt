@@ -2,3 +2,5 @@ User-agent: *
 Allow: /
 
 Sitemap: https://posthink.com.br/sitemap.xml
+
+Sitemap: https://posthink.com.br/sitemap-blog.xml
