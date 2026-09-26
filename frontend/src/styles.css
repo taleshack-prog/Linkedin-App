@@ -42,9 +42,9 @@
 
 :root[data-tema="claro"] {
   /* ---------- dia: a paleta de papel da landing ---------- */
-  --bg: #fbf9f5;
+  --bg: #edeae1;          /* cinza quente: o branco dos cards precisa saltar */
   --surface: #ffffff;
-  --surface-alt: #f3efe7;
+  --surface-alt: #f6f4ef;
   --ink: #14120f;
   --ink-soft: #6e675e;
   --line: #e3ddd2;
@@ -56,7 +56,7 @@
   --rail-ink: #a49c90;
   --rail-ativo: #262019;
   --rail-line: #241f19;
-  --pontos: #dcd5c8;
+  --pontos: #d5cfc2;
 
   --st-draft: #9a6b12;
   --st-draft-bg: rgba(154, 107, 18, 0.10);
