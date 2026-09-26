@@ -14,6 +14,26 @@ O que destravou não foi acordar mais cedo. Foi separar as duas coisas que eu es
 
 Hoje eu só faço a primeira.`;
 
+// Perguntas: respostas factuais do produto. Trocar pelas dúvidas reais dos clientes.
+const PERGUNTAS = [
+  {
+    q: "A IA publica sozinha no meu perfil?",
+    a: "Não. Ela gera rascunhos. Nenhum post vai ao ar sem você ler, aprovar e marcar o horário — é um passo obrigatório do fluxo, não uma configuração que dá para desligar.",
+  },
+  {
+    q: "Isso põe minha conta do LinkedIn em risco?",
+    a: "Não. A publicação passa pela API oficial do LinkedIn, autorizada por você via OAuth. Não usamos extensão de navegador, robô nem raspagem — que é o que costuma derrubar conta na plataforma.",
+  },
+  {
+    q: "O que conta como “post gerado por mês”?",
+    a: "Cada rascunho criado pela IA. A cota renova todo dia 1º. Agendar, editar e publicar não têm limite — você pode reaproveitar e republicar o que já gerou à vontade.",
+  },
+  {
+    q: "Posso cancelar quando quiser?",
+    a: "Sim, pelo próprio painel, sem ligação nem e-mail de retenção. E há garantia de 7 dias: se não gostar, devolvemos o valor integral.",
+  },
+];
+
 export default function Landing() {
   const [aprovado, setAprovado] = useState(false);
   const [planos, setPlanos] = useState(null);
@@ -35,85 +55,113 @@ export default function Landing() {
 
   return (
     <div className="lp">
-      <header className="lp-nav">
-        <span className="lp-marca">Posthink</span>
-        <nav>
-          <a href="#como">Como funciona</a>
-          <a href="#planos">Planos</a>
-          <a href="#indique">Indique e ganhe</a>
-          <a className="lp-btn ghost" href={entrar(false)}>Entrar</a>
-          <a className="lp-btn" href={entrar(true)}>Criar conta</a>
-        </nav>
+      {/* ===== Cabeçalho: fio fino, marca em serifa, uma única ação em destaque ===== */}
+      <header className="lp-topo">
+        <div className="lp-topo-int">
+          <a className="lp-marca" href="/">Posthink</a>
+          <nav className="lp-menu">
+            <a href="#como">Como funciona</a>
+            <a href="#planos">Planos</a>
+            <a href="#perguntas">Perguntas</a>
+          </nav>
+          <div className="lp-topo-acoes">
+            <a className="lp-link-acao" href={entrar(false)}>Entrar</a>
+            <a className="lp-btn" href={entrar(true)}>Criar conta</a>
+          </div>
+        </div>
       </header>
+
+      {/* ===== Dateline: a linha de expediente da publicação ===== */}
+      <div className="lp-expediente">
+        <div className="lp-expediente-int">
+          <span>Mesa editorial de LinkedIn</span>
+          <span className="lp-sep" aria-hidden="true" />
+          <span>Pesquisa · Redação · Agendamento</span>
+          <span className="lp-sep" aria-hidden="true" />
+          <span>API oficial do LinkedIn</span>
+        </div>
+      </div>
 
       {/* ===== Hero: a tese ===== */}
       <section className="lp-hero">
-        <div className="lp-hero-texto">
-          <p className="lp-slug">Mesa editorial · LinkedIn</p>
-          <h1>
-            A IA escreve.<br />
-            Você continua<br />
-            sendo o autor.
-          </h1>
-          <p className="lp-lede">
-            O Posthink pesquisa o tema, escreve no seu tom e publica no horário que você
-            marcar — pela API oficial do LinkedIn. <strong>Nada vai ao ar sem você aprovar.</strong>
-          </p>
-          <div className="lp-cta">
-            <a className="lp-btn grande" href={entrar(true)}>Criar conta</a>
-            <a className="lp-btn ghost grande" href="#planos">Ver planos</a>
-          </div>
-          {ref && (
-            <p className="lp-ref-aviso">
-              🎁 Você chegou pelo convite de um assinante — ao assinar qualquer plano, ganha{" "}
-              <strong>15 dias extras</strong>, por conta dele.
+        <div className="lp-hero-int">
+          <div className="lp-hero-texto">
+            <p className="lp-slug">A tese</p>
+            <h1>
+              A IA escreve.<br />
+              Você continua<br />
+              sendo <em>o autor</em>.
+            </h1>
+            <p className="lp-lede">
+              O Posthink pesquisa o tema, escreve no seu tom e publica no horário que você
+              marcar — pela API oficial do LinkedIn. <strong>Nada vai ao ar sem você aprovar.</strong>
             </p>
-          )}
-        </div>
-
-        {/* ===== Assinatura: o visitante aprova um rascunho ===== */}
-        <div className="lp-mesa">
-          <div className={`lp-card ${aprovado ? "no-ar" : ""}`}>
-            <div className="lp-card-topo">
-              <span className={`lp-chip ${aprovado ? "pub" : "rasc"}`}>
-                {aprovado ? "Publicado" : "Rascunho"}
-              </span>
-              <span className="lp-mono">
-                {aprovado ? "urn:li:share:7218…" : "pauta: constância no LinkedIn"}
-              </span>
+            <div className="lp-cta">
+              <a className="lp-btn grande" href={entrar(true)}>Criar conta</a>
+              <a className="lp-link-seta" href="#planos">Ver planos</a>
             </div>
-            <p className="lp-post">{RASCUNHO}</p>
-            <div className="lp-tags">#escrita #linkedin #constância</div>
-
-            {aprovado ? (
-              <div className="lp-publicado">
-                <span className="lp-carimbo">Aprovado por você</span>
-                <p>
-                  Foi assim: você leu, decidiu e o post foi. É esse o passo que o Posthink
-                  nunca faz sozinho.
-                </p>
-                <button className="lp-desfazer" onClick={() => setAprovado(false)}>
-                  Ver o rascunho de novo
-                </button>
-              </div>
-            ) : (
-              <div className="lp-acoes">
-                <button className="lp-btn" onClick={() => setAprovado(true)}>
-                  Aprovar e agendar
-                </button>
-                <span className="lp-mono dica">experimente — você é o editor</span>
-              </div>
+            {ref && (
+              <p className="lp-ref-aviso">
+                Você chegou pelo convite de um assinante — ao assinar qualquer plano, ganha{" "}
+                <strong>15 dias extras</strong>, por conta dele.
+              </p>
             )}
+            <ul className="lp-provas">
+              <li>Aprovação humana obrigatória</li>
+              <li>Pesquisa na web a cada pauta</li>
+              <li>Cancele quando quiser</li>
+            </ul>
+          </div>
+
+          {/* ===== Assinatura: o visitante aprova um rascunho ===== */}
+          <div className="lp-mesa">
+            <figure className={`lp-card ${aprovado ? "no-ar" : ""}`}>
+              <figcaption className="lp-card-topo">
+                <span className={`lp-chip ${aprovado ? "pub" : "rasc"}`}>
+                  {aprovado ? "Publicado" : "Rascunho"}
+                </span>
+                <span className="lp-mono">
+                  {aprovado ? "urn:li:share:7218…" : "pauta: constância no LinkedIn"}
+                </span>
+              </figcaption>
+              <p className="lp-post">{RASCUNHO}</p>
+              <p className="lp-tags">#escrita #linkedin #constância</p>
+
+              {aprovado ? (
+                <div className="lp-publicado">
+                  <span className="lp-carimbo">Aprovado por você</span>
+                  <p>
+                    Foi assim: você leu, decidiu e o post foi. É esse o passo que o Posthink
+                    nunca faz sozinho.
+                  </p>
+                  <button className="lp-desfazer" onClick={() => setAprovado(false)}>
+                    Ver o rascunho de novo
+                  </button>
+                </div>
+              ) : (
+                <div className="lp-acoes">
+                  <button className="lp-btn" onClick={() => setAprovado(true)}>
+                    Aprovar e agendar
+                  </button>
+                  <span className="lp-mono dica">experimente — você é o editor</span>
+                </div>
+              )}
+            </figure>
           </div>
         </div>
       </section>
 
-      {/* ===== O percurso: é uma sequência real, por isso numerada ===== */}
-      <section className="lp-secao" id="como">
-        <p className="lp-slug">O percurso de um post</p>
+      {/* ===== Faixa: separador editorial, usado uma única vez ===== */}
+      <div className="lp-faixa" id="como">
+        <span className="lp-faixa-lado">O percurso de um post</span>
         <h2>Quatro estágios. Você manda em dois.</h2>
+        <a className="lp-faixa-lado dir" href="#planos">Ver planos →</a>
+      </div>
+
+      {/* ===== O percurso: sequência real, por isso numerada ===== */}
+      <section className="lp-secao lp-secao-etapas">
         <ol className="lp-etapas">
-          <li>
+          <li className="voce">
             <span className="lp-num">01</span>
             <h3>Pauta</h3>
             <p>
@@ -131,7 +179,7 @@ export default function Landing() {
             </p>
             <span className="lp-quem ia">IA</span>
           </li>
-          <li>
+          <li className="voce">
             <span className="lp-num">03</span>
             <h3>Aprovação</h3>
             <p>
@@ -154,139 +202,179 @@ export default function Landing() {
 
       {/* ===== Diferenciais como afirmações, não cards de ícone ===== */}
       <section className="lp-secao lp-fundo">
-        <p className="lp-slug">Por que não é mais um gerador de post</p>
-        <div className="lp-teses">
-          <article>
-            <h3>Pesquisa antes de escrever</h3>
-            <p>
-              A IA busca na web o que aconteceu esta semana no seu tema. Post com dado de
-              ontem, não com generalidade de sempre.
-            </p>
-          </article>
-          <article>
-            <h3>Seu perfil manda no ângulo</h3>
-            <p>
-              Você diz para quem escreve e o que quer construir. O tema define o assunto; o
-              seu perfil define o ângulo, o tom e a chamada.
-            </p>
-          </article>
-          <article>
-            <h3>API oficial, conta protegida</h3>
-            <p>
-              Publicamos pelo canal oficial do LinkedIn, com sua autorização. Sem extensão,
-              sem robô no navegador, sem raspagem — o que derruba conta por lá.
-            </p>
-          </article>
-          <article>
-            <h3>Seus documentos viram post</h3>
-            <p>
-              Suba um relatório ou uma apresentação e os posts nascem do seu conteúdo, com
-              seus números — não do que a IA imagina sobre o assunto.
-            </p>
-          </article>
+        <div className="lp-secao-int">
+          <header className="lp-cabeca">
+            <p className="lp-slug">Por que não é mais um gerador de post</p>
+            <h2>Quatro decisões que mudam o resultado.</h2>
+          </header>
+          <div className="lp-teses">
+            <article>
+              <h3>Pesquisa antes de escrever</h3>
+              <p>
+                A IA busca na web o que aconteceu esta semana no seu tema. Post com dado de
+                ontem, não com generalidade de sempre.
+              </p>
+            </article>
+            <article>
+              <h3>Seu perfil manda no ângulo</h3>
+              <p>
+                Você diz para quem escreve e o que quer construir. O tema define o assunto; o
+                seu perfil define o ângulo, o tom e a chamada.
+              </p>
+            </article>
+            <article>
+              <h3>API oficial, conta protegida</h3>
+              <p>
+                Publicamos pelo canal oficial do LinkedIn, com sua autorização. Sem extensão,
+                sem robô no navegador, sem raspagem — o que derruba conta por lá.
+              </p>
+            </article>
+            <article>
+              <h3>Seus documentos viram post</h3>
+              <p>
+                Suba um relatório ou uma apresentação e os posts nascem do seu conteúdo, com
+                seus números — não do que a IA imagina sobre o assunto.
+              </p>
+            </article>
+          </div>
         </div>
       </section>
 
       {/* ===== Planos ===== */}
       <section className="lp-secao" id="planos">
-        <p className="lp-slug">Planos</p>
-        <h2>Escolha o ritmo. Cancele quando quiser.</h2>
-        <p className="lp-sub-secao">
-          Garantia de 7 dias: não gostou, devolvemos o dinheiro.
-        </p>
-
-        <div className="cycle-toggle">
-          <button className={ciclo === "monthly" ? "on" : ""} onClick={() => setCiclo("monthly")}>
-            Mensal
-          </button>
-          <button className={ciclo === "annual" ? "on" : ""} onClick={() => setCiclo("annual")}>
-            Anual <span className="cycle-badge">2 meses grátis</span>
-          </button>
-        </div>
-
-        <div className="lp-planos">
-          {planos?.plans?.map((p) => (
-            <div key={p.key} className={`lp-plano ${p.key === "pro" ? "destaque" : ""}`}>
-              {p.key === "pro" && <span className="lp-plano-tag">Mais escolhido</span>}
-              <h3>{p.name}</h3>
-              <div className="lp-preco">
-                R$ {ciclo === "annual" ? brl(Math.round(p.price_cents_annual / 12)) : brl(p.price_cents)}
-                <span>/mês</span>
-              </div>
-              <p className="lp-preco-sub">
-                {ciclo === "annual"
-                  ? `R$ ${brl(p.price_cents_annual)} por ano · economize R$ ${brl(p.annual_savings_cents)}`
-                  : "cobrado mensalmente"}
-              </p>
-              <ul>
-                <li>{p.max_posts < 0 ? "Geração ilimitada de posts" : `${p.max_posts} posts gerados por mês`}, com pesquisa</li>
-                <li>Agendamento e publicação automática</li>
-                <li>Upload de imagens</li>
-                <li className={p.brand_profile ? "" : "nao"}>Perfil de marca</li>
-                <li className={p.ai_images ? "" : "nao"}>Imagem por IA</li>
-                <li className={p.video ? "" : "nao"}>Upload de vídeo</li>
-                <li className={p.doc_upload ? "" : "nao"}>Seus documentos como referência</li>
-                <li className={p.text_formatting ? "" : "nao"}>Formatação de texto</li>
-                <li>
-                  {p.linkedin_accounts} {p.linkedin_accounts > 1 ? "contas" : "conta"} do LinkedIn
-                </li>
-              </ul>
-              <a className={`lp-btn ${p.key === "pro" ? "" : "ghost"} bloco`} href={entrar(true)}>
-                Começar
-              </a>
+        <div className="lp-secao-int">
+          <header className="lp-cabeca centro">
+            <p className="lp-slug">Planos</p>
+            <h2>Escolha o ritmo. Cancele quando quiser.</h2>
+            <p className="lp-sub-secao">
+              Garantia de 7 dias: não gostou, devolvemos o dinheiro.
+            </p>
+            <div className="cycle-toggle">
+              <button className={ciclo === "monthly" ? "on" : ""} onClick={() => setCiclo("monthly")}>
+                Mensal
+              </button>
+              <button className={ciclo === "annual" ? "on" : ""} onClick={() => setCiclo("annual")}>
+                Anual <span className="cycle-badge">2 meses grátis</span>
+              </button>
             </div>
-          ))}
-          {!planos && <p className="lp-mono">carregando planos…</p>}
-        </div>
-        <p className="lp-mono" style={{ textAlign: "center", marginTop: 14, opacity: 0.75 }}>
-          &ldquo;posts gerados por mês&rdquo; = rascunhos criados pela IA (renova todo dia 1º). Agendar e publicar não têm limite.
-        </p>
+          </header>
 
+          <div className="lp-planos">
+            {planos?.plans?.map((p) => (
+              <div key={p.key} className={`lp-plano ${p.key === "pro" ? "destaque" : ""}`}>
+                {p.key === "pro" && <span className="lp-plano-tag">Mais escolhido</span>}
+                <h3>{p.name}</h3>
+                <div className="lp-preco">
+                  <span className="lp-preco-moeda">R$</span>
+                  {ciclo === "annual" ? brl(Math.round(p.price_cents_annual / 12)) : brl(p.price_cents)}
+                  <span className="lp-preco-mes">/mês</span>
+                </div>
+                <p className="lp-preco-sub">
+                  {ciclo === "annual"
+                    ? `R$ ${brl(p.price_cents_annual)} por ano · economize R$ ${brl(p.annual_savings_cents)}`
+                    : "cobrado mensalmente"}
+                </p>
+                <ul>
+                  <li>{p.max_posts < 0 ? "Geração ilimitada de posts" : `${p.max_posts} posts gerados por mês`}, com pesquisa</li>
+                  <li>Agendamento e publicação automática</li>
+                  <li>Upload de imagens</li>
+                  <li className={p.brand_profile ? "" : "nao"}>Perfil de marca</li>
+                  <li className={p.ai_images ? "" : "nao"}>Imagem por IA</li>
+                  <li className={p.video ? "" : "nao"}>Upload de vídeo</li>
+                  <li className={p.doc_upload ? "" : "nao"}>Seus documentos como referência</li>
+                  <li className={p.text_formatting ? "" : "nao"}>Formatação de texto</li>
+                  <li>
+                    {p.linkedin_accounts} {p.linkedin_accounts > 1 ? "contas" : "conta"} do LinkedIn
+                  </li>
+                </ul>
+                <a className={`lp-btn ${p.key === "pro" ? "" : "ghost"} bloco`} href={entrar(true)}>
+                  Começar
+                </a>
+              </div>
+            ))}
+            {!planos && <p className="lp-mono lp-planos-carregando">carregando planos…</p>}
+          </div>
+
+          <p className="lp-nota-planos">
+            &ldquo;posts gerados por mês&rdquo; = rascunhos criados pela IA (renova todo dia 1º).
+            Agendar e publicar não têm limite.
+          </p>
+        </div>
       </section>
 
-      {/* ===== Indicação: aqui é o lugar — depois do preço, quando a conta está sendo feita ===== */}
-      <section className="lp-secao lp-fundo" id="indique">
-        <p className="lp-slug">Indique e ganhe</p>
-        <h2>O Posthink pode se pagar sozinho.</h2>
-        <p className="lp-sub-secao">
-          Assinantes recebem um link pessoal. A cada amigo que assina por ele, você sobe na
-          escada — e quem entra pelo seu convite ganha 15 dias extras de presente.
-        </p>
-        <div className="lp-escada">
-          <div className="lp-degrau">
-            <span className="lp-degrau-n">3</span>
-            <span className="lp-degrau-label">amigos assinantes</span>
-            <strong>1 mês grátis</strong>
-          </div>
-          <div className="lp-degrau">
-            <span className="lp-degrau-n">10</span>
-            <span className="lp-degrau-label">amigos assinantes</span>
-            <strong>6 meses grátis</strong>
-          </div>
-          <div className="lp-degrau alto">
-            <span className="lp-degrau-n">16</span>
-            <span className="lp-degrau-label">amigos assinantes</span>
-            <strong>1 ano inteiro</strong>
-          </div>
+      {/* ===== Perguntas: objeções respondidas antes da decisão ===== */}
+      <section className="lp-secao lp-fundo" id="perguntas">
+        <div className="lp-secao-int">
+          <header className="lp-cabeca">
+            <p className="lp-slug">Perguntas</p>
+            <h2>O que perguntam antes de assinar.</h2>
+          </header>
+          <dl className="lp-faq">
+            {PERGUNTAS.map((item) => (
+              <div className="lp-faq-item" key={item.q}>
+                <dt>{item.q}</dt>
+                <dd>{item.a}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
-        <p className="lp-escada-nota">
-          Só conta amigo que vira assinante de verdade — nada de cadastro fantasma.
-        </p>
+      </section>
+
+      {/* ===== Indicação: depois do preço, quando a conta está sendo feita ===== */}
+      <section className="lp-secao" id="indique">
+        <div className="lp-secao-int">
+          <header className="lp-cabeca">
+            <p className="lp-slug">Indique e ganhe</p>
+            <h2>O Posthink pode se pagar sozinho.</h2>
+            <p className="lp-sub-secao">
+              Assinantes recebem um link pessoal. A cada amigo que assina por ele, você sobe na
+              escada — e quem entra pelo seu convite ganha 15 dias extras de presente.
+            </p>
+          </header>
+          <div className="lp-escada">
+            <div className="lp-degrau">
+              <span className="lp-degrau-n">3</span>
+              <span className="lp-degrau-label">amigos assinantes</span>
+              <strong>1 mês grátis</strong>
+            </div>
+            <div className="lp-degrau">
+              <span className="lp-degrau-n">10</span>
+              <span className="lp-degrau-label">amigos assinantes</span>
+              <strong>6 meses grátis</strong>
+            </div>
+            <div className="lp-degrau alto">
+              <span className="lp-degrau-n">16</span>
+              <span className="lp-degrau-label">amigos assinantes</span>
+              <strong>1 ano inteiro</strong>
+            </div>
+          </div>
+          <p className="lp-escada-nota">
+            Só conta amigo que vira assinante de verdade — nada de cadastro fantasma.
+          </p>
+        </div>
       </section>
 
       <section className="lp-fechamento">
-        <h2>A página em branco não vai se escrever sozinha.</h2>
-        <p>Mas ela também não precisa mais ser sua.</p>
-        <a className="lp-btn grande" href={entrar(true)}>Criar conta</a>
+        <p className="lp-slug">Última linha</p>
+        <h2>A página em branco não vai<br />se escrever sozinha.</h2>
+        <p className="lp-fechamento-sub">Mas ela também não precisa mais ser sua.</p>
+        <a className="lp-btn grande claro" href={entrar(true)}>Criar conta</a>
       </section>
 
       <footer className="lp-rodape">
-        <span className="lp-marca">Posthink</span>
-        <span className="lp-mono">Hack Tech Farm · Porto Alegre, RS</span>
-        <nav>
-          <a href="/privacidade">Política de Privacidade</a>
-          <a href={entrar(false)}>Entrar</a>
-        </nav>
+        <div className="lp-rodape-int">
+          <div className="lp-rodape-marca">
+            <span className="lp-marca">Posthink</span>
+            <p className="lp-mono">Hack Tech Farm · Porto Alegre, RS</p>
+          </div>
+          <nav>
+            <a href="#como">Como funciona</a>
+            <a href="#planos">Planos</a>
+            <a href="#perguntas">Perguntas</a>
+            <a href="/privacidade">Política de Privacidade</a>
+            <a href={entrar(false)}>Entrar</a>
+          </nav>
+        </div>
       </footer>
     </div>
   );
