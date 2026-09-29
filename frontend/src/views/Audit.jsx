@@ -99,7 +99,7 @@ export default function Audit() {
             <span className="aud-arquivo-rot">Capturas do perfil <em>(opcional)</em></span>
             <input ref={refImgs} type="file" accept="image/*" multiple id="aud-imgs"
                    onChange={(e) => setImagens(Array.from(e.target.files || []).slice(0, 4))} />
-            <span className="mono">{imagens.length ? `${imagens.length} imagem(ns)` : "foto, banner, layout"}</span>
+            <span className="mono">{imagens.length ? `${imagens.length} imagem(ns)` : "use \"Ver como\" → visitante"}</span>
           </label>
         </div>
 
@@ -108,6 +108,7 @@ export default function Audit() {
           <ol>
             <li><strong>PDF do perfil:</strong> abra seu perfil no LinkedIn → botão <em>Mais</em> → <em>Salvar em PDF</em>.</li>
             <li><strong>Planilha:</strong> no seu perfil, seção <em>Análises</em> → <em>Impressões da publicação</em> → <em>Exportar</em>. Períodos personalizados só existem no aplicativo do celular; no computador ficam os períodos pré-definidos.</li>
+            <li><strong>Capturas:</strong> abra seu perfil, clique em <em>Ver como</em> e capture a tela de visitante. A sua tela de dono tem botões e painéis que ninguém mais enxerga — capturá-la faz a análise comentar coisas que o público não vê.</li>
           </ol>
           <p className="mono">
             Endereço, telefone e e-mail são removidos do PDF antes de qualquer análise.

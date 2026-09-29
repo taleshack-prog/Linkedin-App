@@ -312,8 +312,21 @@ def auditar(
     if imgs:
         conteudo.append({
             "type": "text",
-            "text": "Imagens do perfil (foto, banner, layout). Avalie coerência visual com o "
-                    "posicionamento — não descreva a imagem, diagnostique.",
+            "text": (
+                "Imagens do perfil (foto, banner, layout). Avalie coerência visual com o "
+                "posicionamento — não descreva a imagem, diagnostique.\n\n"
+                "ATENÇÃO: estas capturas quase sempre são a tela do DONO do perfil, não a "
+                "do visitante. Botões de ação ('Disponível para', 'Adicionar seção', "
+                "'Aprimorar perfil', 'Recursos'), ícones de lápis, painéis de Análise e "
+                "cartões de sugestão do LinkedIn aparecem só para quem é dono e NÃO são "
+                "vistos por quem visita. Não os trate como conteúdo público nem gere achado "
+                "sobre eles — recomendar 'desmarcar' um botão que não dá para desmarcar faz "
+                "a pessoa perder tempo e tira a credibilidade do resto do diagnóstico.\n"
+                "Avalie apenas o que o visitante vê: banner, foto, nome, headline, e as "
+                "seções de conteúdo do perfil. Selos que o público vê (a moldura verde de "
+                "'Aberto para trabalho', a faixa de 'Prestando serviços') são conteúdo "
+                "público e valem achado; a barra de ferramentas do dono, não."
+            ),
         })
         conteudo.extend(imgs)
 
