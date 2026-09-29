@@ -124,6 +124,61 @@ def salvar_metricas(db: Session, user: User, dados: dict) -> tuple[int, int]:
     return len(publicacoes), casados
 
 
+def ultimo_snapshot_como_metricas(db: Session, user: User) -> dict | None:
+    """Reconstrói o bloco de métricas a partir do último export guardado.
+
+    O usuário não precisa reenviar a planilha a cada auditoria: o LinkedIn só
+    entrega janelas curtas e, entre duas auditorias no mesmo dia, o arquivo
+    seria idêntico. O que já foi importado continua valendo — com a data da
+    importação explícita, para o auditor saber que não é de hoje.
+    """
+    snap = db.execute(
+        select(AnalyticsSnapshot)
+        .where(AnalyticsSnapshot.user_id == user.id)
+        .order_by(AnalyticsSnapshot.periodo_fim.desc())
+    ).scalars().first()
+    if snap is None:
+        return None
+
+    dados = snap.dados if isinstance(snap.dados, dict) else {}
+    publicacoes = db.execute(
+        select(PostMetric)
+        .where(PostMetric.user_id == user.id)
+        .order_by(PostMetric.impressoes.desc().nullslast())
+    ).scalars().all()
+
+    return {
+        "periodo": {
+            "inicio": snap.periodo_inicio.isoformat() if snap.periodo_inicio else None,
+            "fim": snap.periodo_fim.isoformat() if snap.periodo_fim else None,
+            "dias": ((snap.periodo_fim - snap.periodo_inicio).days + 1)
+                    if snap.periodo_inicio and snap.periodo_fim else None,
+        },
+        "resumo": {
+            "impressoes": snap.impressoes, "alcance": snap.alcance,
+            "engajamentos": snap.engajamentos,
+            "seguidores_total": snap.seguidores_total,
+            "seguidores_novos": snap.seguidores_novos,
+        },
+        "serie_diaria": dados.get("serie_diaria") or [],
+        "publico": dados.get("publico") or [],
+        "conteudo": dados.get("conteudo") or [],
+        "publicacoes": [
+            {
+                "share_id": m.share_id, "url": m.url, "tema_url": m.tema_url,
+                "data": m.publicado_em.isoformat() if m.publicado_em else None,
+                "impressoes": m.impressoes, "engajamentos": m.engajamentos,
+            }
+            for m in publicacoes
+        ],
+        "avisos": list(dados.get("avisos") or []) + [
+            "Estes números vêm de um export importado antes, não de um arquivo enviado "
+            "agora. Servem para avaliar conteúdo; não os trate como movimento recente."
+        ],
+        "de_importacao_anterior": True,
+    }
+
+
 def posts_para_auditoria(db: Session, user: User) -> list[dict]:
     """Posts publicados, marcados pela ORIGEM.
 
@@ -207,7 +262,12 @@ def rodar_auditoria(
         salvar_metricas(db, user, metricas)
         db.flush()  # para a auditoria já enxergar os casamentos
 
-    posts = posts_para_auditoria(db, user) if metricas else []
+    # Sem planilha nova, vale o que já foi importado: métricas e textos ficam
+    # guardados e não somem porque o usuário não reenviou o mesmo arquivo.
+    if not metricas:
+        metricas = ultimo_snapshot_como_metricas(db, user)
+
+    posts = posts_para_auditoria(db, user)
     for texto in (posts_colados or []):
         texto = (texto or "").strip()
         if texto:

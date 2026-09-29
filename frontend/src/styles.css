@@ -1062,3 +1062,7 @@ a.lp-faixa-lado:hover { color: var(--papel); }
   font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .14em;
   text-transform: uppercase; color: var(--marca);
 }
+.aud-reaproveita {
+  margin: 14px 0 4px; line-height: 1.6;
+  border-left: 2px solid var(--line-strong); padding-left: 12px;
+}

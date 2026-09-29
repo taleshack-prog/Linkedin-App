@@ -115,6 +115,12 @@ export default function Audit() {
           </p>
         </details>
 
+        <p className="aud-reaproveita mono">
+          O que você já enviou antes continua valendo: se não anexar a planilha de novo,
+          a análise usa o último export importado e os textos dos posts que já publicou
+          por aqui. Reenvie só quando houver período novo para medir.
+        </p>
+
         <div className="field">
           <label htmlFor="aud-posts">Posts anteriores <span className="mono">(opcional — separe por uma linha com ---)</span></label>
           <textarea id="aud-posts" value={postsTexto} rows={4}
