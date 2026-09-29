@@ -842,6 +842,23 @@ a.lp-faixa-lado:hover { color: var(--papel); }
   border-top: 1px solid var(--linha); padding-top: 18px;
 }
 
+/* ===== Auditoria (landing) ===== */
+.lp-aud { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.lp-aud article {
+  padding: 30px 32px 30px 0; border-top: 1px solid var(--linha-forte);
+}
+.lp-aud article + article { padding-left: 32px; border-left: 1px solid var(--linha-forte); }
+.lp-aud-n {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--marca); margin: 0 0 12px;
+}
+.lp-aud h3 { font-size: 24px; margin: 0 0 10px; line-height: 1.15; }
+.lp-aud p { font-size: 14.5px; line-height: 1.65; color: var(--grafite); margin: 0; }
+.lp-aud-nota {
+  font-family: var(--font-mono); font-size: 11px; color: var(--grafite);
+  margin: 26px 0 0; padding-top: 16px; border-top: 1px solid var(--linha);
+}
+
 /* ===== Perguntas ===== */
 .lp-faq { margin: 0; }
 .lp-faq-item {
@@ -915,6 +932,10 @@ a.lp-faixa-lado:hover { color: var(--papel); }
   .lp-etapas li, .lp-etapas li:nth-child(2) { margin-right: 0; padding-right: 0; }
   .lp-teses { grid-template-columns: 1fr; }
   .lp-teses article, .lp-teses article:nth-child(even) {
+    padding: 26px 0; border-left: none; padding-left: 0;
+  }
+  .lp-aud { grid-template-columns: 1fr; }
+  .lp-aud article, .lp-aud article + article {
     padding: 26px 0; border-left: none; padding-left: 0;
   }
   .lp-faixa { grid-template-columns: 1fr; text-align: left; gap: 10px; padding: 26px var(--gutter); }

@@ -10,6 +10,7 @@ const FEATURES = [
   ["Imagem por IA", (p) => p.ai_images],
   ["Upload de vídeo", (p) => p.video],
   ["Material de referência (docs)", (p) => p.doc_upload],
+  ["Auditoria de marca (por mês)", (p) => (p.max_audits > 0 ? p.max_audits : p.max_audits === 0 ? false : "ilimitada")],
   ["Formatação de texto (negrito/itálico)", (p) => p.text_formatting],
   ["Contas LinkedIn", (p) => p.linkedin_accounts],
 ];

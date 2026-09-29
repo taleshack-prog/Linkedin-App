@@ -61,6 +61,7 @@ export default function Landing() {
           <a className="lp-marca" href="/">Posthink</a>
           <nav className="lp-menu">
             <a href="#como">Como funciona</a>
+            <a href="#auditoria">Auditoria</a>
             <a href="#planos">Planos</a>
             <a href="#perguntas">Perguntas</a>
           </nav>
@@ -240,6 +241,54 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ===== Auditoria: o diferencial que nenhum gerador tem ===== */}
+      <section className="lp-secao" id="auditoria">
+        <div className="lp-secao-int">
+          <header className="lp-cabeca">
+            <p className="lp-slug">Auditoria de marca</p>
+            <h2>Antes de escrever, descobrir o que está errado.</h2>
+            <p className="lp-sub-secao">
+              O LinkedIn não abre seu perfil nem suas métricas para aplicativos — nenhum deles,
+              nem o nosso. Mas você baixa dois arquivos da sua própria conta, em dois cliques
+              cada, e aqui eles viram diagnóstico.
+            </p>
+          </header>
+
+          <div className="lp-aud">
+            <article>
+              <p className="lp-aud-n">Você envia</p>
+              <h3>Dois arquivos que já são seus</h3>
+              <p>
+                O PDF do seu perfil e a planilha de análises, ambos exportados pelo próprio
+                LinkedIn. Endereço, telefone e e-mail são removidos antes de qualquer análise.
+              </p>
+            </article>
+            <article>
+              <p className="lp-aud-n">Você recebe</p>
+              <h3>Um diagnóstico com a prova junto</h3>
+              <p>
+                Nota do perfil, do conteúdo e da coerência entre os dois. Cada apontamento vem
+                com o trecho ou o número que o sustenta — para você poder discordar item a item.
+                Sem métrica, a nota fica em branco: nada é estimado.
+              </p>
+            </article>
+            <article>
+              <p className="lp-aud-n">E então</p>
+              <h3>A escrita muda junto</h3>
+              <p>
+                O que a auditoria descobre passa a direcionar os próximos posts: o tom que
+                funciona para você, o ângulo do seu posicionamento e os vícios a evitar. Ela
+                também propõe pautas — cada uma nascida de um achado do seu diagnóstico.
+              </p>
+            </article>
+          </div>
+
+          <p className="lp-aud-nota">
+            Disponível em todos os planos pagos. A frequência varia conforme o plano.
+          </p>
+        </div>
+      </section>
+
       {/* ===== Planos ===== */}
       <section className="lp-secao" id="planos">
         <div className="lp-secao-int">
@@ -282,6 +331,13 @@ export default function Landing() {
                   <li className={p.ai_images ? "" : "nao"}>Imagem por IA</li>
                   <li className={p.video ? "" : "nao"}>Upload de vídeo</li>
                   <li className={p.doc_upload ? "" : "nao"}>Seus documentos como referência</li>
+                  <li className={p.max_audits ? "" : "nao"}>
+                    {p.max_audits === 1
+                      ? "Auditoria de marca, 1 por mês"
+                      : p.max_audits > 1
+                        ? `Auditoria de marca, ${p.max_audits} por mês`
+                        : "Auditoria de marca"}
+                  </li>
                   <li className={p.text_formatting ? "" : "nao"}>Formatação de texto</li>
                   <li>
                     {p.linkedin_accounts} {p.linkedin_accounts > 1 ? "contas" : "conta"} do LinkedIn
@@ -369,6 +425,7 @@ export default function Landing() {
           </div>
           <nav>
             <a href="#como">Como funciona</a>
+            <a href="#auditoria">Auditoria</a>
             <a href="#planos">Planos</a>
             <a href="#perguntas">Perguntas</a>
             <a href="/privacidade">Política de Privacidade</a>
