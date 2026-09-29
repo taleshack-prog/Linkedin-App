@@ -2,7 +2,7 @@
 import logging
 
 from app.database import SessionLocal
-from app.models import BrandProfile, ContentBrief, LinkedInAccount, Post, PostStatus, User
+from app.models import BrandProfile, ContentBrief, LinkedInAccount, Post, PostStatus, ProfileAudit, User
 from app.services.plans import max_posts_for
 from app.services.usage import posts_used_this_month
 from app.services.content_generator import generate_posts
@@ -41,8 +41,21 @@ def generate_from_brief(self, brief_id: str, linkedin_account_id: str):
             requested = min(requested, remaining)
 
         profile = None
+        orientacao = None
         if brief.use_profile:
             profile = db.query(BrandProfile).filter_by(user_id=brief.user_id).first()
+            # As diretrizes vêm da auditoria mais recente. Ficam aqui, e não no
+            # BrandProfile, porque `angulo` e `evitar` não têm campo lá — e
+            # `evitar` é justamente o que impede a geração de repetir o vício
+            # que a auditoria apontou.
+            ultima = (
+                db.query(ProfileAudit)
+                .filter_by(user_id=brief.user_id)
+                .order_by(ProfileAudit.created_at.desc())
+                .first()
+            )
+            if ultima and isinstance(ultima.resultado, dict):
+                orientacao = ultima.resultado.get("para_geracao")
         posts = generate_posts(
             theme=brief.theme,
             instructions=brief.instructions,
@@ -50,6 +63,7 @@ def generate_from_brief(self, brief_id: str, linkedin_account_id: str):
             language=brief.language,
             profile=profile.to_context_dict() if profile else None,
             source_text=brief.source_text,
+            audit_guidance=orientacao,
         )
         for p in posts:
             db.add(

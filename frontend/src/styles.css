@@ -1036,3 +1036,29 @@ a.lp-faixa-lado:hover { color: var(--papel); }
 .aud-geracao .aud-titulo { margin-top: 0; border-top: none; padding-top: 0; }
 .aud-geracao p { font-size: 14px; line-height: 1.6; margin: 8px 0 0; }
 .aud-rodape { margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--line); }
+
+/* ===== Pautas sugeridas pela auditoria ===== */
+.sug {
+  border: 1px solid var(--marca); border-radius: var(--radius);
+  padding: 18px 20px; margin-bottom: 18px;
+}
+.sug-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.sug-topo h3 { font-family: var(--font-display); font-size: 20px; font-weight: 400; margin: 0; }
+.sug-topo p { margin: 4px 0 0; }
+.sug-lista { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 10px; }
+.sug-item {
+  width: 100%; text-align: left; background: var(--surface); color: inherit;
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px;
+  display: grid; gap: 6px;
+}
+.sug-item:hover { border-color: var(--marca); }
+.sug-tema { font-family: var(--font-display); font-size: 18px; }
+.sug-porque { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+.sug-angulo {
+  font-size: 13.5px; line-height: 1.5;
+  border-left: 2px solid var(--line-strong); padding-left: 10px;
+}
+.sug-usar {
+  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--marca);
+}

@@ -136,6 +136,38 @@ def build_profile_context(profile: dict | None) -> str:
     return "\n".join(lines)
 
 
+def build_audit_block(para_geracao: dict | None) -> str:
+    """Bloco vindo da auditoria de marca.
+
+    Os quatro campos do `para_geracao` viram instrução direta. O `evitar` é o
+    mais importante: é o guarda-corpo negativo, tirado dos vícios que a
+    auditoria encontrou nos posts reais do autor. Sem ele, a geração repete
+    exatamente o que o diagnóstico apontou como problema.
+    """
+    if not para_geracao or not isinstance(para_geracao, dict):
+        return ""
+    linhas = []
+    if para_geracao.get("tom"):
+        linhas.append(f"- Tom que funciona para este autor: {para_geracao['tom']}")
+    if para_geracao.get("angulo"):
+        linhas.append(f"- Ângulo: {para_geracao['angulo']}")
+    priorizar = para_geracao.get("priorizar") or []
+    if priorizar:
+        linhas.append("- Priorizar: " + "; ".join(str(x) for x in priorizar[:8]))
+    evitar = para_geracao.get("evitar") or []
+    if evitar:
+        linhas.append("- EVITAR (vícios detectados nos posts reais deste autor): "
+                      + "; ".join(str(x) for x in evitar[:8]))
+    if not linhas:
+        return ""
+    return (
+        "Diretrizes da auditoria de marca deste autor — saíram da análise do perfil "
+        "e do desempenho real dos posts dele, e têm precedência sobre o estilo "
+        "padrão (mas não sobre as instruções que ele escreveu nesta pauta):\n"
+        + "\n".join(linhas)
+    )
+
+
 def build_source_block(source_text: str | None) -> str:
     """Bloco de material de referência anexado ao prompt."""
     if not source_text:
@@ -164,6 +196,7 @@ def _looks_like_real_post(text: str) -> bool:
 def generate_posts(
     theme: str, instructions: str | None, count: int, language: str,
     profile: dict | None = None, source_text: str | None = None,
+    audit_guidance: dict | None = None,
 ) -> list[dict]:
     s = get_settings()
     client = anthropic.Anthropic(api_key=s.ANTHROPIC_API_KEY)
@@ -177,6 +210,9 @@ def generate_posts(
     context = build_profile_context(profile)
     if context:
         user_prompt = f"{context}\n\n{user_prompt}"
+    auditoria = build_audit_block(audit_guidance)
+    if auditoria:
+        user_prompt = f"{auditoria}\n\n{user_prompt}"
     source = build_source_block(source_text)
     if source:
         user_prompt = f"{user_prompt}\n\n{source}"

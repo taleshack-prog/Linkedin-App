@@ -115,6 +115,8 @@ export default function Briefs({ accounts, onGenerated }) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [sugestoes, setSugestoes] = useState([]);
+  const [verSugestoes, setVerSugestoes] = useState(true);
 
   const load = () => api.briefs().then(setBriefs).catch((e) => setError(e.message));
   useEffect(() => {
@@ -129,6 +131,14 @@ export default function Briefs({ accounts, onGenerated }) {
   useEffect(() => {
     if (!accountId && accounts.length) setAccountId(accounts[0].id);
   }, [accounts]);
+
+  // Pautas propostas pela auditoria. Cada uma nasce de um achado do
+  // diagnóstico — a escolha continua sendo de quem escreve.
+  useEffect(() => {
+    api.audit()
+      .then((a) => setSugestoes(Array.isArray(a?.resultado?.pautas) ? a.resultado.pautas : []))
+      .catch(() => {});
+  }, []);
 
   async function create() {
     setBusy(true);
@@ -215,6 +225,41 @@ export default function Briefs({ accounts, onGenerated }) {
       </header>
       {notice && <div className="notice">{notice}</div>}
       {error && <div className="notice err">{error}</div>}
+
+      {accounts.length > 0 && sugestoes.length > 0 && (
+        <section className="sug">
+          <header className="sug-topo">
+            <div>
+              <h3>Pautas sugeridas pela sua auditoria</h3>
+              <p className="mono">cada uma nasceu de um achado do seu diagnóstico — a escolha é sua</p>
+            </div>
+            <button className="btn" onClick={() => setVerSugestoes((v) => !v)}>
+              {verSugestoes ? "Ocultar" : `Ver ${sugestoes.length}`}
+            </button>
+          </header>
+          {verSugestoes && (
+            <ul className="sug-lista">
+              {sugestoes.map((s, i) => (
+                <li key={i}>
+                  <button
+                    className="sug-item"
+                    onClick={() => {
+                      setTheme(s.tema || "");
+                      if (s.angulo) setInstructions(s.angulo);
+                      document.getElementById("theme")?.focus();
+                    }}
+                  >
+                    <span className="sug-tema">{s.tema}</span>
+                    {s.porque && <span className="sug-porque">{s.porque}</span>}
+                    {s.angulo && <span className="sug-angulo">{s.angulo}</span>}
+                    <span className="sug-usar">usar esta pauta →</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       {accounts.length === 0 ? (
         <div className="empty">Conecte uma conta LinkedIn em “Conta” antes de criar pautas.</div>

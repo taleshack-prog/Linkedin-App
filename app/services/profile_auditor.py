@@ -58,7 +58,13 @@ No máximo 5, ordenadas por impacto. Cada uma diz o que fazer e como — com o t
 
 O BLOCO para_geracao
 
-É o que vai direcionar a escrita automática dos próximos posts. Preencha com o que você descobriu: o tom que funciona para esta pessoa, o ângulo que o posicionamento pede, o que evitar (vícios que você detectou nos posts dela) e o que priorizar (assuntos que ela domina e não explora). Seja concreto e curto: cada item vira instrução para outra IA."""
+É o que vai direcionar a escrita automática dos próximos posts. Preencha com o que você descobriu: o tom que funciona para esta pessoa, o ângulo que o posicionamento pede, o que evitar (vícios que você detectou nos posts dela) e o que priorizar (assuntos que ela domina e não explora). Seja concreto e curto: cada item vira instrução para outra IA.
+
+AS PAUTAS
+
+Proponha de 3 a 6 temas para os próximos posts. Não são ideias genéricas de conteúdo: cada pauta nasce de algo que você encontrou nesta auditoria — uma lacuna entre o que a pessoa domina e o que ela publica, uma divergência entre o perfil e a prática, um assunto que o público dela demonstra buscar e ela não cobre.
+
+Cada pauta traz o tema como a pessoa digitaria numa caixa de busca (específico, não "falar sobre IA"), o motivo pelo qual você a propõe, e o ângulo que ela deve tomar. A escolha é sempre do usuário — você propõe, ele decide."""
 
 AUDIT_TOOL = {
     "name": "emit_audit",
@@ -128,13 +134,32 @@ AUDIT_TOOL = {
                     "priorizar": {"type": "array", "items": {"type": "string"}},
                 },
             },
+            "pautas": {
+                "type": "array",
+                "description": "3 a 6 temas para os próximos posts, cada um nascido de um achado desta auditoria.",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "tema": {
+                            "type": "string",
+                            "description": "Como a pessoa digitaria numa caixa de busca. Específico.",
+                        },
+                        "porque": {
+                            "type": "string",
+                            "description": "O achado desta auditoria que motiva esta pauta.",
+                        },
+                        "angulo": {"type": "string"},
+                    },
+                    "required": ["tema", "porque", "angulo"],
+                },
+            },
             "nao_avaliado": {
                 "type": "array",
                 "description": "O que faltou material para analisar, e qual arquivo resolveria.",
                 "items": {"type": "string"},
             },
         },
-        "required": ["score", "achados", "acoes", "para_geracao"],
+        "required": ["score", "achados", "acoes", "para_geracao", "pautas"],
     },
 }
 
