@@ -261,7 +261,8 @@ a { color: var(--marca); }
 .no.alerta .no-pe { color: var(--marca); }
 
 /* posição no grafo: o desenho conta o caminho do post */
-.no-perfil { grid-column: 1; grid-row: 1; }
+.no-audit { grid-column: 1; grid-row: 1; }
+.no-perfil { grid-column: 2; grid-row: 1; margin-top: 30px; }
 .no-accounts { grid-column: 3; grid-row: 1; margin-top: 14px; }
 .no-health { grid-column: 4; grid-row: 1; }
 .no-briefs { grid-column: 1; grid-row: 2; }
@@ -950,3 +951,88 @@ a.lp-faixa-lado:hover { color: var(--papel); }
 .paywall-box.confirmando { text-align: center; padding-top: 18vh; }
 .paywall-box.confirmando h1 { margin-bottom: 6px; }
 .paywall-box.confirmando p { color: var(--ink-soft); }
+
+/* ===== Auditoria de marca ===== */
+.aud-envio {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 20px; margin-bottom: 26px; background: var(--surface);
+}
+.aud-campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+.aud-arquivo {
+  display: flex; flex-direction: column; gap: 6px; padding: 14px;
+  border: 1px dashed var(--line-strong); border-radius: var(--radius); cursor: pointer;
+}
+.aud-arquivo:hover { border-color: var(--marca); }
+.aud-arquivo-rot {
+  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--ink-soft);
+}
+.aud-arquivo-rot em { font-style: normal; opacity: .6; }
+.aud-arquivo input[type="file"] { font-size: 12px; width: 100%; padding: 0; border: none; background: none; }
+.aud-como { margin: 16px 0 4px; font-size: 13.5px; }
+.aud-como summary { cursor: pointer; color: var(--ink-soft); font-size: 13px; }
+.aud-como summary:hover { color: var(--marca); }
+.aud-como ol { padding-left: 20px; margin: 10px 0; color: var(--ink-soft); line-height: 1.6; }
+.aud-como li { margin-bottom: 6px; }
+.aud-como em { color: var(--ink); font-style: normal; font-weight: 500; }
+.aud-acoes { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 14px; }
+
+.aud-resultado { margin-top: 4px; }
+.aud-scores { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px; }
+.aud-medidor {
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 16px;
+  display: flex; flex-direction: column; gap: 4px; background: var(--surface);
+}
+.aud-medidor-n {
+  font-family: var(--font-display); font-size: 40px; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.aud-medidor-rot {
+  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--ink-soft);
+}
+.aud-medidor-na { font-family: var(--font-mono); font-size: 10px; color: var(--st-muted); }
+.aud-barra { display: block; height: 2px; background: var(--line); margin-top: 8px; }
+.aud-barra > span { display: block; height: 100%; background: var(--marca); }
+.aud-base { color: var(--ink-soft); font-size: 14px; margin: 14px 0 0; line-height: 1.6; }
+
+.aud-titulo {
+  font-size: 22px; margin: 34px 0 14px; padding-top: 14px;
+  border-top: 1px solid var(--line-strong);
+}
+.aud-lista-acoes { list-style: none; padding: 0; margin: 0; }
+.aud-lista-acoes > li { padding: 16px 0; border-bottom: 1px solid var(--line); }
+.aud-acao-topo { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.aud-acao-n { font-family: var(--font-mono); font-size: 12px; color: var(--marca); }
+.aud-acao-topo h4 { font-family: var(--font-display); font-size: 19px; font-weight: 400; margin: 0; flex: 1; }
+.aud-porque { color: var(--ink-soft); font-size: 14px; margin: 0 0 8px; line-height: 1.6; }
+.aud-como-fazer {
+  margin: 0; font-size: 14.5px; line-height: 1.6;
+  border-left: 2px solid var(--marca); padding-left: 12px;
+}
+
+.aud-achados { display: grid; gap: 12px; }
+.aud-achado {
+  border: 1px solid var(--line); border-left: 3px solid var(--st-muted);
+  border-radius: var(--radius); padding: 14px 16px; background: var(--surface);
+}
+.aud-achado.alta { border-left-color: var(--st-failed); }
+.aud-achado.media { border-left-color: var(--st-draft); }
+.aud-achado-topo { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+.aud-achado p { margin: 0; font-size: 14.5px; line-height: 1.6; }
+.aud-evidencia {
+  margin-top: 8px !important; font-family: var(--font-mono); font-size: 11.5px;
+  color: var(--ink-soft); line-height: 1.55;
+}
+.aud-evidencia span { color: var(--marca); }
+
+.aud-faltou { padding-left: 20px; margin: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.6; }
+.aud-faltou li { margin-bottom: 8px; }
+
+.aud-geracao {
+  border: 1px solid var(--marca); border-radius: var(--radius);
+  padding: 18px 20px; margin-top: 30px;
+}
+.aud-geracao .aud-titulo { margin-top: 0; border-top: none; padding-top: 0; }
+.aud-geracao p { font-size: 14px; line-height: 1.6; margin: 8px 0 0; }
+.aud-rodape { margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--line); }

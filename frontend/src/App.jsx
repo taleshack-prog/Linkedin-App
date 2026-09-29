@@ -12,6 +12,7 @@ import Landing from "./views/Landing.jsx";
 import Paywall from "./views/Paywall.jsx";
 import Health from "./views/Health.jsx";
 import Mesa from "./views/Mesa.jsx";
+import Audit from "./views/Audit.jsx";
 
 // Tela de abertura. "inicio" = Mesa (canvas de nós); "draft" = direto nos rascunhos.
 const TELA_INICIAL = "inicio";
@@ -27,6 +28,7 @@ const STAGES = [
 const TITULOS = {
   inicio: "Mesa",
   perfil: "Perfil de marca",
+  audit: "Auditoria",
   briefs: "Pautas",
   calendar: "Calendário",
   accounts: "Contas",
@@ -55,6 +57,7 @@ const ICONES = {
   inicio: <><rect x="4" y="4" width="7" height="7" /><rect x="13" y="4" width="7" height="7" /><rect x="4" y="13" width="7" height="7" /><rect x="13" y="13" width="7" height="7" /></>,
   perfil: <><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6" /></>,
   briefs: <><path d="M5 4h11l3 3v13H5z" /><path d="M8 11h8M8 15h5" /></>,
+  audit: <><circle cx="11" cy="11" r="6" /><path d="M20 20l-4.5-4.5M9 11h4M11 9v4" /></>,
   draft: <><path d="M4 20h16" /><path d="M14 4l6 6-9 9H5v-6z" /></>,
   approved: <><circle cx="12" cy="12" r="8" /><path d="M12 8v4l3 2" /></>,
   published: <><path d="M4 12.5l5 5L20 6.5" /></>,
@@ -96,6 +99,7 @@ export default function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const [recolhido, setRecolhido] = useState(() => lerPref("posthink_rail") === "1");
+  const [auditoria, setAuditoria] = useState(null);
   const [tema, setTema] = useState(() => {
     const salvo = lerPref("posthink_tema");
     if (salvo === "claro" || salvo === "escuro") return salvo;
@@ -123,6 +127,7 @@ export default function App() {
       setAccounts(accs);
       setFeatures(st || {});
       setIsAdmin(Boolean(me && me.is_admin));
+      api.audit().then(setAuditoria).catch(() => {});
       setCarregando(false);
       setRefreshKey((k) => k + 1);
     } catch {
@@ -181,6 +186,7 @@ export default function App() {
 
         <div className="stage-label">Produção</div>
         <ItemNav view={view} ir={ir} recolhido={recolhido} chave="perfil" rotulo="Perfil de marca" />
+        <ItemNav view={view} ir={ir} recolhido={recolhido} chave="audit" rotulo="Auditoria" />
         <ItemNav view={view} ir={ir} recolhido={recolhido} chave="briefs" rotulo="Pautas" />
 
         <div className="stage-label">Pipeline</div>
@@ -244,6 +250,7 @@ export default function App() {
               accounts={accounts}
               features={features}
               isAdmin={isAdmin}
+              auditoria={auditoria}
               onAbrir={ir}
             />
           )}
@@ -260,6 +267,7 @@ export default function App() {
           {view === "briefs" && <Briefs accounts={accounts} onGenerated={refresh} />}
           {view === "accounts" && <Accounts accounts={accounts} onChanged={refresh} />}
           {view === "perfil" && <Profile />}
+          {view === "audit" && <Audit />}
           {view === "billing" && <Billing />}
           {view === "health" && isAdmin && <Health />}
         </main>

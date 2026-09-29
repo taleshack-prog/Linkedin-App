@@ -95,6 +95,22 @@ export const api = {
   getProfile: () => request("/profile"),
   saveProfile: (payload) => request("/profile", { method: "PUT", body: JSON.stringify(payload) }),
   linkedinLogin: () => request("/auth/linkedin/login"),
+  // ---- auditoria de marca (upload: PDF do perfil + .xlsx de análises) ----
+  audit: () => request("/profile/audit"),
+  auditHistory: () => request("/profile/audit/historico"),
+  runAudit: async ({ perfilPdf, analyticsXlsx, postsTexto, imagens }) => {
+    const form = new FormData();
+    if (perfilPdf) form.append("perfil_pdf", perfilPdf);
+    if (analyticsXlsx) form.append("analytics_xlsx", analyticsXlsx);
+    if (postsTexto) form.append("posts_texto", postsTexto);
+    (imagens || []).forEach((img) => form.append("imagens", img));
+    const resp = await fetch(`${BASE}/profile/audit`, { method: "POST", headers: authHeaders(), body: form });
+    if (!resp.ok) {
+      const data = await resp.json().catch(() => ({}));
+      throw new Error(typeof data.detail === "string" ? data.detail : `Erro ${resp.status}`);
+    }
+    return resp.json();
+  },
   briefs: () => request("/briefs"),
   updateBrief: (id, payload) => request(`/briefs/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   regenerateBrief: (id) => request(`/briefs/${id}/regenerate`, { method: "POST" }),

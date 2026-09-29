@@ -5,6 +5,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
    Calendário, Planos e Saúde ficam sem fio: são visões, não etapas. */
 
 const ARESTAS = [
+  ["audit", "perfil"],
   ["perfil", "briefs"],
   ["briefs", "draft"],
   ["draft", "approved"],
@@ -13,7 +14,7 @@ const ARESTAS = [
   ["accounts", "published"],
 ];
 
-export default function Mesa({ counts = {}, accounts = [], features = {}, isAdmin, onAbrir }) {
+export default function Mesa({ counts = {}, accounts = [], features = {}, isAdmin, auditoria, onAbrir }) {
   const grafoRef = useRef(null);
   const nosRef = useRef({});
   const [fios, setFios] = useState([]);
@@ -101,6 +102,18 @@ export default function Mesa({ counts = {}, accounts = [], features = {}, isAdmi
         </svg>
 
         <div className="nos">
+          <No chave="audit" classe="no-audit" refEl={registrar("audit")} onAbrir={onAbrir}
+              tipo={auditoria ? "diagnóstico" : "nunca auditado"}
+              cor={auditoria ? "published" : "muted"}
+              alerta={!auditoria}
+              titulo="Auditoria" numero={auditoria?.score_total ?? undefined}
+              estado={auditoria
+                ? "Score do seu perfil e do seu conteúdo, com o que fazer a seguir."
+                : "Suba o PDF do seu perfil e receba o diagnóstico da sua marca."}
+              pe={auditoria
+                ? `de ${new Date(auditoria.created_at).toLocaleDateString("pt-BR")}`
+                : "nenhuma auditoria ainda"} />
+
           <No chave="perfil" classe="no-perfil" refEl={registrar("perfil")} onAbrir={onAbrir}
               tipo="define o ângulo" titulo="Perfil de marca"
               estado="Para quem você escreve e o que quer construir." />
