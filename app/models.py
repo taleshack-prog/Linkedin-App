@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
-    BigInteger, Boolean, DateTime, Enum, ForeignKey, Integer, LargeBinary,
+    BigInteger, Boolean, Date, DateTime, Enum, ForeignKey, Integer, LargeBinary,
     SmallInteger, String, Text, UniqueConstraint, func,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
@@ -205,3 +205,80 @@ class BrandProfile(Base):
             "industry": self.industry, "audience": self.audience, "goal": self.goal,
             "tone": self.tone, "pillars": self.pillars, "positioning": self.positioning,
         }
+
+
+# ===========================================================================
+# Auditoria de marca — alimentada por upload (PDF do perfil, export .xlsx de
+# analytics, textos de posts). Nada aqui vem de API do LinkedIn: os escopos
+# self-serve não dão perfil nem métrica.
+# ===========================================================================
+class ProfileAudit(Base):
+    __tablename__ = "profile_audits"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    # Componentes nulos quando faltou material — nunca preenchidos por estimativa.
+    score_total: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    score_perfil: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    score_conteudo: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    score_consistencia: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    fontes: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
+    resultado: Mapped[dict] = mapped_column(JSONB, default=dict)  # JSON completo do auditor
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AnalyticsSnapshot(Base):
+    """Uma janela do export de analytics.
+
+    O LinkedIn só entrega períodos curtos e não guarda histórico para o usuário.
+    Acumulando cada upload aqui, o Posthink passa a ter a série que a própria
+    plataforma não mostra.
+    """
+
+    __tablename__ = "analytics_snapshots"
+    __table_args__ = (UniqueConstraint("user_id", "periodo_inicio", "periodo_fim",
+                                       name="uq_snapshot_periodo"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    periodo_inicio: Mapped[datetime] = mapped_column(Date)
+    periodo_fim: Mapped[datetime] = mapped_column(Date)
+    impressoes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    alcance: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    engajamentos: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    seguidores_total: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    seguidores_novos: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    dados: Mapped[dict] = mapped_column(JSONB, default=dict)  # série diária + demografia
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class PostMetric(Base):
+    """Desempenho por publicação, acumulado entre uploads.
+
+    `share_id` é o número final do URN, extraído da URL do export. Quando ele
+    casa com o `linkedin_post_urn` de um post nosso, `post_id` é preenchido e
+    passamos a ter métrica e texto do mesmo post — que é o que permite avaliar
+    o que funcionou sem depender de API de analytics.
+    """
+
+    __tablename__ = "post_metrics"
+    __table_args__ = (UniqueConstraint("user_id", "share_id", name="uq_metric_post"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    post_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("posts.id", ondelete="SET NULL"), nullable=True
+    )
+    share_id: Mapped[str] = mapped_column(String)
+    url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    publicado_em: Mapped[datetime | None] = mapped_column(Date, nullable=True)
+    impressoes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    engajamentos: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    tema_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    medido_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
