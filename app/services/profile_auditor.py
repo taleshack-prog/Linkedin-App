@@ -41,6 +41,7 @@ REGRAS INEGOCIÁVEIS
 3. Métrica pequena é métrica pequena. Com 168 impressões em 7 dias, você não tem base para concluir "qual formato performa melhor" — diga isso em vez de fingir análise. Volume baixo permite observação, não conclusão.
 4. Não elogie para suavizar. O valor está no que está errado e em como consertar. Reconheça acertos só quando forem reproduzíveis — e diga como reproduzir.
 5. Escreva para a pessoa, em segunda pessoa, direto. Nada de "o usuário deveria". Português do Brasil.
+6. Separe o que a máquina controla do que a pessoa controla. Cada post vem marcado com a origem. Os escritos no Posthink passaram pela IA de geração: vício de escrita neles é instrução que cabe em `para_geracao.evitar`. Os publicados fora do Posthink são hábito da pessoa, e o gerador não tem como mudá-los — isso vira `acoes`, nunca `evitar`. Atribuir errado faz duas coisas ruins ao mesmo tempo: enche o prompt de geração com regra que ele não pode violar, e esconde da pessoa um conselho que era para ela.
 
 COMO PONTUAR
 
@@ -58,7 +59,9 @@ No máximo 5, ordenadas por impacto. Cada uma diz o que fazer e como — com o t
 
 O BLOCO para_geracao
 
-É o que vai direcionar a escrita automática dos próximos posts. Preencha com o que você descobriu: o tom que funciona para esta pessoa, o ângulo que o posicionamento pede, o que evitar (vícios que você detectou nos posts dela) e o que priorizar (assuntos que ela domina e não explora). Seja concreto e curto: cada item vira instrução para outra IA.
+É o que vai direcionar a escrita automática dos próximos posts. Preencha com o que você descobriu: o tom que funciona para esta pessoa, o ângulo que o posicionamento pede, o que evitar e o que priorizar. Seja concreto e curto: cada item vira instrução para outra IA.
+
+O `evitar` só admite o que a IA de geração é capaz de fazer de errado — vícios de escrita observados nos posts marcados como escritos no Posthink. Comportamentos de publicação (postar sem texto, frequência, formato escolhido na hora de publicar) não são dela: vão em `acoes`.
 
 AS PAUTAS
 
@@ -186,15 +189,25 @@ def _bloco_metricas(dados: dict | None) -> str:
     return f"<desempenho>{nota}\n{corpo}\n</desempenho>"
 
 
+ORIGEM_ROTULO = {
+    "posthink": "escrito pela IA e aprovado pelo autor no Posthink",
+    "fora": "publicado direto no LinkedIn, fora do Posthink — texto indisponível",
+    "colado": "colado pelo autor, origem não identificada",
+}
+
+
 def _bloco_posts(posts: list[dict] | None) -> str:
-    """posts: [{'texto': ..., 'data': ..., 'impressoes': ..., 'engajamentos': ...}]"""
+    """Posts com a origem explícita.
+
+    Post sem texto entra assim mesmo, com o tema deduzido do endereço: a
+    ausência do texto é informação (foi publicado fora), e o auditor precisa
+    saber que ele existe para não concluir sobre um feed incompleto.
+    """
     if not posts:
         return ""
     linhas = []
     for i, p in enumerate(posts[:MAX_POSTS_NO_PROMPT], 1):
         texto = (p.get("texto") or "").strip()[:MAX_CHARS_POR_POST]
-        if not texto:
-            continue
         cab = f"[post {i}"
         if p.get("data"):
             cab += f" · {p['data']}"
@@ -202,8 +215,16 @@ def _bloco_posts(posts: list[dict] | None) -> str:
             cab += f" · {p['impressoes']} impressões"
         if p.get("engajamentos") is not None:
             cab += f" · {p['engajamentos']} engajamentos"
+        origem = p.get("origem")
+        if origem in ORIGEM_ROTULO:
+            cab += f" · {ORIGEM_ROTULO[origem]}"
         cab += "]"
-        linhas.append(f"{cab}\n{texto}")
+        if texto:
+            linhas.append(f"{cab}\n{texto}")
+        elif p.get("tema_url"):
+            linhas.append(f"{cab}\n(sem texto disponível; tema pelo endereço: {p['tema_url']})")
+        else:
+            linhas.append(f"{cab}\n(sem texto disponível)")
     if not linhas:
         return ""
     return "<posts_publicados>\n" + "\n\n---\n\n".join(linhas) + "\n</posts_publicados>"

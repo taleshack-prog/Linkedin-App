@@ -125,26 +125,36 @@ def salvar_metricas(db: Session, user: User, dados: dict) -> tuple[int, int]:
 
 
 def posts_para_auditoria(db: Session, user: User) -> list[dict]:
-    """Textos dos posts publicados, com a métrica que casou.
+    """Posts publicados, marcados pela ORIGEM.
 
-    O export traz URL e número; o texto está aqui. Os melhores primeiro,
-    porque é o que o auditor consegue ler dentro do orçamento do prompt.
+    A distinção importa e é a única que o Posthink consegue fazer sozinho:
+    `post_id` preenchido significa que o post saiu daqui, e então temos o
+    texto; sem `post_id`, foi publicado direto no LinkedIn e só temos URL e
+    métrica.
+
+    Sem isso, o auditor atribui à geração automática um hábito que é do
+    usuário — e uma diretriz sobre algo que o gerador não controla (publicar
+    vídeo sem texto, por exemplo, é impossível aqui: o commentary é
+    obrigatório) vira ruído no prompt de geração.
     """
     linhas = db.execute(
-        select(Post, PostMetric)
-        .join(PostMetric, PostMetric.post_id == Post.id)
+        select(PostMetric, Post)
+        .outerjoin(Post, PostMetric.post_id == Post.id)
         .where(PostMetric.user_id == user.id)
         .order_by(PostMetric.impressoes.desc().nullslast())
         .limit(MAX_POSTS_PARA_AUDITORIA)
     ).all()
 
     fora = []
-    for post, metrica in linhas:
+    for metrica, post in linhas:
+        do_posthink = post is not None
         fora.append({
-            "texto": post.commentary,
+            "texto": post.commentary if do_posthink else None,
+            "tema_url": metrica.tema_url,
             "data": metrica.publicado_em.isoformat() if metrica.publicado_em else None,
             "impressoes": metrica.impressoes,
             "engajamentos": metrica.engajamentos,
+            "origem": "posthink" if do_posthink else "fora",
         })
     return fora
 
@@ -201,7 +211,7 @@ def rodar_auditoria(
     for texto in (posts_colados or []):
         texto = (texto or "").strip()
         if texto:
-            posts.append({"texto": texto})
+            posts.append({"texto": texto, "origem": "colado"})
 
     contexto = None
     perfil_marca = db.execute(
