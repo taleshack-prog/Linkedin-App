@@ -168,9 +168,28 @@ AUDIT_TOOL = {
 
 
 def _bloco_perfil(texto: str | None) -> str:
+    """Texto do PDF exportado do perfil.
+
+    O aviso importa: o PDF é gerado pelo LinkedIn e carrega defeitos que não
+    existem no perfil real. Sem ele, a auditoria manda a pessoa corrigir
+    coisas que ela não tem como corrigir — e recomendação impossível queima a
+    credibilidade do diagnóstico inteiro.
+    """
     if not texto:
         return ""
-    return f"<perfil_linkedin>\n{texto[:20_000]}\n</perfil_linkedin>"
+    return (
+        "<perfil_linkedin>\n"
+        "Extraído do PDF que o LinkedIn gera do perfil. A exportação introduz "
+        "defeitos próprios, ausentes no perfil que as pessoas visitam: marcas de "
+        "página, palavras grudadas na emenda entre seções, ordem trocada de blocos "
+        "e nomes de cidade transliterados para outro alfabeto. Não gere achado "
+        "sobre esses artefatos — a pessoa não tem como corrigi-los.\n"
+        "Erro que ela escreveu (acento faltando no texto que digitou, data errada, "
+        "descrição vazia) é achado legítimo. Se não der para distinguir um do "
+        "outro, inclua o achado com severidade baixa e peça, no próprio "
+        "diagnóstico, que ela confira no perfil antes de mexer.\n\n"
+        f"{texto[:20_000]}\n</perfil_linkedin>"
+    )
 
 
 def _bloco_metricas(dados: dict | None) -> str:
