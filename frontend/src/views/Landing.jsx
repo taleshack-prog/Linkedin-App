@@ -25,6 +25,10 @@ const PERGUNTAS = [
     a: "Não. A publicação passa pela API oficial do LinkedIn, autorizada por você via OAuth. Não usamos extensão de navegador, robô nem raspagem — que é o que costuma derrubar conta na plataforma.",
   },
   {
+    q: "Como vocês auditam meu perfil, se o LinkedIn não dá esse acesso?",
+    a: "Quem entrega os dados é você, não a plataforma. O LinkedIn deixa você exportar o PDF do próprio perfil e a planilha de análises, em dois cliques cada — é isso que você sobe aqui. Não há extensão, robô nem raspagem, e a gente não entra na sua conta para olhar nada. Endereço, telefone e e-mail são removidos do PDF antes de qualquer análise.",
+  },
+  {
     q: "O que conta como “post gerado por mês”?",
     a: "Cada rascunho criado pela IA. A cota renova todo dia 1º. Agendar, editar e publicar não têm limite — você pode reaproveitar e republicar o que já gerou à vontade.",
   },
