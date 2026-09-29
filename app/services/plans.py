@@ -21,17 +21,18 @@ class Plan:
     video: bool                     # upload de vídeo (LinkedIn) — Pro/Agency
     voice: bool                     # pauta por voz (STT) — Pro/Agency
     audit: bool                     # auditoria de marca (perfil + desempenho) — Pro/Agency
+    max_audits: int                 # auditorias de marca por mês (-1 = ilimitado; 0 = sem acesso)
     max_images: int                 # nº máx. de imagens por post (carrossel) — Pro/Agency = 4
     max_posts: int                  # teto de posts GERADOS por mês (-1 = ilimitado; 0 = sem geração)
 
 
 PLANS: dict[str, Plan] = {
-    "free":       Plan("free",       "Sem assinatura",      0, price_cents_annual=0,        linkedin_accounts=1,  ai_images=False, doc_upload=False, brand_profile=False, text_formatting=False, video=False, voice=False, audit=False, max_images=1, max_posts=0),
-    "starter":    Plan("starter",    "Starter",          2500, price_cents_annual=25000,    linkedin_accounts=1,  ai_images=False, doc_upload=False, brand_profile=True,  text_formatting=False, video=False, voice=False, audit=False, max_images=1, max_posts=30),
-    "pro":        Plan("pro",        "Pro",              5000, price_cents_annual=50000,    linkedin_accounts=2,  ai_images=True,  doc_upload=True,  brand_profile=True,  text_formatting=True,  video=True, voice=True,  audit=True,  max_images=4, max_posts=60),
-    "agency":     Plan("agency",     "Agency",          20000, price_cents_annual=200000,   linkedin_accounts=10, ai_images=True,  doc_upload=True,  brand_profile=True,  text_formatting=True,  video=True, voice=True,  audit=True,  max_images=4, max_posts=300),
-    "agency_pro": Plan("agency_pro", "Agency Pro",      50000, price_cents_annual=500000,   linkedin_accounts=10, ai_images=True,  doc_upload=True,  brand_profile=True,  text_formatting=True,  video=True, voice=True,  audit=True,  max_images=4, max_posts=600),
-    "agency_max": Plan("agency_max", "Agency Max",     100000, price_cents_annual=1000000,  linkedin_accounts=15, ai_images=True,  doc_upload=True,  brand_profile=True,  text_formatting=True,  video=True, voice=True,  audit=True,  max_images=4, max_posts=-1),
+    "free":       Plan("free",       "Sem assinatura",      0, price_cents_annual=0,        linkedin_accounts=1,  ai_images=False, doc_upload=False, brand_profile=False, text_formatting=False, video=False, voice=False, audit=False, max_audits=0, max_images=1, max_posts=0),
+    "starter":    Plan("starter",    "Starter",          2500, price_cents_annual=25000,    linkedin_accounts=1,  ai_images=False, doc_upload=False, brand_profile=True,  text_formatting=False, video=False, voice=False, audit=True,  max_audits=1, max_images=1, max_posts=30),
+    "pro":        Plan("pro",        "Pro",              5000, price_cents_annual=50000,    linkedin_accounts=2,  ai_images=True,  doc_upload=True,  brand_profile=True,  text_formatting=True,  video=True, voice=True,  audit=True, max_audits=4,  max_images=4, max_posts=60),
+    "agency":     Plan("agency",     "Agency",          20000, price_cents_annual=200000,   linkedin_accounts=10, ai_images=True,  doc_upload=True,  brand_profile=True,  text_formatting=True,  video=True, voice=True,  audit=True, max_audits=15,  max_images=4, max_posts=300),
+    "agency_pro": Plan("agency_pro", "Agency Pro",      50000, price_cents_annual=500000,   linkedin_accounts=10, ai_images=True,  doc_upload=True,  brand_profile=True,  text_formatting=True,  video=True, voice=True,  audit=True, max_audits=30,  max_images=4, max_posts=600),
+    "agency_max": Plan("agency_max", "Agency Max",     100000, price_cents_annual=1000000,  linkedin_accounts=15, ai_images=True,  doc_upload=True,  brand_profile=True,  text_formatting=True,  video=True, voice=True,  audit=True, max_audits=60,  max_images=4, max_posts=-1),
 }
 
 # Bônus do INDICADO: dias extras ao assinar via link de indicação
@@ -69,6 +70,11 @@ def require_feature(user, feature: str) -> bool:
 def max_images_for(user) -> int:
     """Nº máximo de imagens por post do plano do usuário (1 = imagem única)."""
     return plan_of(user).max_images
+
+
+def max_audits_for(user) -> int:
+    """Teto de auditorias de marca por mês do plano (-1 = ilimitado; 0 = sem acesso)."""
+    return plan_of(user).max_audits
 
 
 def max_posts_for(user) -> int:

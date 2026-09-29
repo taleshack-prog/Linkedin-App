@@ -97,6 +97,7 @@ export const api = {
   linkedinLogin: () => request("/auth/linkedin/login"),
   // ---- auditoria de marca (upload: PDF do perfil + .xlsx de análises) ----
   audit: () => request("/profile/audit"),
+  auditQuota: () => request("/profile/audit/quota"),
   auditHistory: () => request("/profile/audit/historico"),
   runAudit: async ({ perfilPdf, analyticsXlsx, postsTexto, imagens }) => {
     const form = new FormData();

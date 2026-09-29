@@ -7,8 +7,8 @@ from datetime import datetime, timezone
 
 from sqlalchemy import func
 
-from app.models import Post
-from app.services.plans import max_posts_for
+from app.models import Post, ProfileAudit
+from app.services.plans import max_audits_for, max_posts_for
 
 
 def _month_start() -> datetime:
@@ -30,6 +30,25 @@ def generation_quota(db, user) -> tuple[int, int, int]:
     """Retorna (usados, teto, restantes). teto e restantes = -1 quando ilimitado."""
     cap = max_posts_for(user)
     used = posts_used_this_month(db, user.id)
+    if cap < 0:
+        return used, -1, -1
+    return used, cap, max(0, cap - used)
+
+
+def audits_used_this_month(db, user_id) -> int:
+    """Nº de auditorias de marca rodadas no mês-calendário atual."""
+    return (
+        db.query(func.count(ProfileAudit.id))
+        .filter(ProfileAudit.user_id == user_id, ProfileAudit.created_at >= _month_start())
+        .scalar()
+        or 0
+    )
+
+
+def audit_quota(db, user) -> tuple[int, int, int]:
+    """(usadas, teto, restantes). Teto/restantes = -1 quando ilimitado."""
+    cap = max_audits_for(user)
+    used = audits_used_this_month(db, user.id)
     if cap < 0:
         return used, -1, -1
     return used, cap, max(0, cap - used)

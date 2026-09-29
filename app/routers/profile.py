@@ -17,6 +17,7 @@ from app.services.audit_ingest import rodar_auditoria
 from app.services.linkedin_export import ExportError, parse_analytics_xlsx
 from app.services.plans import require_feature
 from app.services.text_extractor import ExtractionError, extract_text, limpar_contato_do_perfil
+from app.services.usage import audit_quota
 
 router = APIRouter(prefix="/profile", tags=["profile"])
 
@@ -101,6 +102,17 @@ class AuditOut(BaseModel):
     created_at: datetime
 
 
+@router.get("/audit/quota")
+def cota_auditoria(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    usadas, teto, restantes = audit_quota(db, user)
+    return {
+        "disponivel": bool(require_feature(user, "audit")),
+        "usadas": usadas,
+        "teto": teto,
+        "restantes": restantes,
+    }
+
+
 @router.get("/audit", response_model=AuditOut | None)
 def ultima_auditoria(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     return (
@@ -133,7 +145,15 @@ async def criar_auditoria(
     _: None = Depends(require_subscription),
 ):
     if not require_feature(user, "audit"):
-        raise HTTPException(402, "A auditoria de marca está disponível a partir do plano Pro")
+        raise HTTPException(402, "A auditoria de marca não está disponível no seu plano")
+
+    usadas, teto, restantes = audit_quota(db, user)
+    if teto >= 0 and restantes <= 0:
+        raise HTTPException(
+            402,
+            f"Você já usou as {teto} auditorias do seu plano neste mês. "
+            "A cota renova no dia 1º — ou faça upgrade para auditar com mais frequência.",
+        )
 
     perfil_texto = None
     if perfil_pdf is not None and perfil_pdf.filename:

@@ -36,6 +36,7 @@ export default function Audit() {
   const [imagens, setImagens] = useState([]);
   const [postsTexto, setPostsTexto] = useState("");
   const [comoFazer, setComoFazer] = useState(false);
+  const [cota, setCota] = useState(null);
   const refPdf = useRef(null);
   const refXlsx = useRef(null);
   const refImgs = useRef(null);
@@ -45,6 +46,7 @@ export default function Audit() {
       .then((a) => setAuditoria(a))
       .catch((e) => setErro(e.message))
       .finally(() => setCarregando(false));
+    api.auditQuota().then(setCota).catch(() => {});
   }, []);
 
   async function rodar() {
@@ -52,6 +54,7 @@ export default function Audit() {
     try {
       const nova = await api.runAudit({ perfilPdf, analyticsXlsx, postsTexto, imagens });
       setAuditoria(nova);
+      api.auditQuota().then(setCota).catch(() => {});
       setPerfilPdf(null); setAnalyticsXlsx(null); setImagens([]); setPostsTexto("");
       if (refPdf.current) refPdf.current.value = "";
       if (refXlsx.current) refXlsx.current.value = "";
@@ -129,10 +132,18 @@ export default function Audit() {
         </div>
 
         <div className="aud-acoes">
-          <button className="btn primary" onClick={rodar} disabled={!temMaterial || rodando}>
+          <button className="btn primary" onClick={rodar}
+                  disabled={!temMaterial || rodando || (cota && cota.teto >= 0 && cota.restantes <= 0)}>
             {rodando ? "Analisando…" : auditoria ? "Auditar de novo" : "Auditar minha marca"}
           </button>
           {rodando && <span className="mono">a análise leva alguns segundos</span>}
+          {cota && cota.teto >= 0 && !rodando && (
+            <span className="mono">
+              {cota.restantes > 0
+                ? `${cota.restantes} de ${cota.teto} auditorias restantes neste mês`
+                : `cota do mês esgotada (${cota.teto}) — renova no dia 1º`}
+            </span>
+          )}
           {!temMaterial && !rodando && (
             <span className="mono">envie ao menos um arquivo para começar</span>
           )}
