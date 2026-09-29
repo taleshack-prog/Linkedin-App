@@ -220,12 +220,29 @@ def rodar_auditoria(
     if perfil_marca is not None:
         contexto = perfil_marca.to_context_dict()
 
+    # A auditoria anterior entra no prompt para que esta não critique o que
+    # aquela mandou fazer. Sem isso, quem aplica as recomendações volta e
+    # encontra o próprio trabalho listado como defeito — e para de aplicar.
+    anterior = db.execute(
+        select(ProfileAudit)
+        .where(ProfileAudit.user_id == user.id)
+        .order_by(ProfileAudit.created_at.desc())
+    ).scalars().first()
+    bloco_anterior = None
+    if anterior is not None and isinstance(anterior.resultado, dict):
+        bloco_anterior = {
+            "quando": anterior.created_at.strftime("%d/%m/%Y") if anterior.created_at else None,
+            "score": anterior.resultado.get("score"),
+            "acoes": anterior.resultado.get("acoes") or [],
+        }
+
     resultado = auditar(
         perfil_texto=perfil_texto,
         metricas=metricas,
         posts=posts or None,
         imagens=imagens,
         contexto_marca=contexto,
+        auditoria_anterior=bloco_anterior,
     )
 
     score = resultado.get("score") or {}

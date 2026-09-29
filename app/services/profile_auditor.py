@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import base64
 import json
+from datetime import date
 
 from app.config import get_settings
 
@@ -41,7 +42,19 @@ REGRAS INEGOCIÁVEIS
 3. Métrica pequena é métrica pequena. Com 168 impressões em 7 dias, você não tem base para concluir "qual formato performa melhor" — diga isso em vez de fingir análise. Volume baixo permite observação, não conclusão.
 4. Não elogie para suavizar. O valor está no que está errado e em como consertar. Reconheça acertos só quando forem reproduzíveis — e diga como reproduzir.
 5. Escreva para a pessoa, em segunda pessoa, direto. Nada de "o usuário deveria". Português do Brasil.
-6. Separe o que a máquina controla do que a pessoa controla. Cada post vem marcado com a origem. Os escritos no Posthink passaram pela IA de geração: vício de escrita neles é instrução que cabe em `para_geracao.evitar`. Os publicados fora do Posthink são hábito da pessoa, e o gerador não tem como mudá-los — isso vira `acoes`, nunca `evitar`. Atribuir errado faz duas coisas ruins ao mesmo tempo: enche o prompt de geração com regra que ele não pode violar, e esconde da pessoa um conselho que era para ela.
+6. A data de hoje vem informada no material. Use-a para qualquer conta com datas. Não presuma o ano: um cargo iniciado em setembro de 2025 que hoje soma "1 ano 1 mês" está certo se hoje for outubro de 2026. Só aponte data impossível depois de fazer a conta com a data informada.
+7. Separe o que a máquina controla do que a pessoa controla. Cada post vem marcado com a origem. Os escritos no Posthink passaram pela IA de geração: vício de escrita neles é instrução que cabe em `para_geracao.evitar`. Os publicados fora do Posthink são hábito da pessoa, e o gerador não tem como mudá-los — isso vira `acoes`, nunca `evitar`. Atribuir errado faz duas coisas ruins ao mesmo tempo: enche o prompt de geração com regra que ele não pode violar, e esconde da pessoa um conselho que era para ela.
+
+SE JÁ HOUVE AUDITORIA ANTES
+
+Quando o material trouxer o que foi recomendado numa auditoria anterior, você tem uma obrigação a mais: não desfazer o próprio trabalho.
+
+- Se a pessoa aplicou o que você pediu, reconheça no `score.base` — em uma frase, sem elogio inflado. Ela fez a parte dela.
+- NÃO transforme em problema novo aquilo que uma auditoria anterior mandou fazer. Se a headline hoje é a que a auditoria passada ditou, ela não é "um erro que você cometeu": ou está boa, ou a recomendação anterior estava errada.
+- Se ainda assim você precisa mudar de posição, diga isso no diagnóstico com todas as letras: que está revisando a orientação anterior e por quê (o material agora é outro, o público mudou, a recomendação era rasa). Mudar de ideia é legítimo; fingir que a ideia sempre foi outra, não.
+- Nunca reabra um item que a auditoria anterior deu como resolvido sem evidência nova.
+
+Pessoa que aplica o que você pede e volta encontrando a mesma nota, ou uma crítica ao que ela acabou de fazer, para de aplicar. E aí a auditoria inteira não serve mais para nada.
 
 COMO PONTUAR
 
@@ -192,6 +205,39 @@ def _bloco_perfil(texto: str | None) -> str:
     )
 
 
+def _bloco_anterior(anterior: dict | None) -> str:
+    """O que a auditoria passada recomendou.
+
+    Sem isto, cada rodada parte do zero e pode criticar exatamente o que ela
+    mesma mandou fazer — que foi o que aconteceu com as competências e a
+    headline deste perfil.
+    """
+    if not anterior:
+        return ""
+    partes = []
+    quando = anterior.get("quando")
+    score = (anterior.get("score") or {}).get("total")
+    cab = "Auditoria anterior"
+    if quando:
+        cab += f" ({quando})"
+    if score is not None:
+        cab += f", score geral {score}"
+    partes.append(cab + ". O que foi recomendado na ocasião:")
+    for i, a in enumerate(anterior.get("acoes") or [], 1):
+        titulo = a.get("titulo") or ""
+        como = (a.get("como") or "").strip()
+        linha = f"{i}. {titulo}"
+        if como:
+            linha += f"\n   Texto/instrução dada: {como}"
+        partes.append(linha)
+    return (
+        "<auditoria_anterior>\n" + "\n".join(partes) +
+        "\nSe o perfil de hoje reflete alguma destas recomendações, ela foi aplicada — "
+        "reconheça em vez de apontar como defeito. Para mudar de posição sobre qualquer "
+        "uma, diga explicitamente que está revisando e por quê.\n</auditoria_anterior>"
+    )
+
+
 def _bloco_metricas(dados: dict | None) -> str:
     """Serializa o que saiu de linkedin_export.parse_analytics_xlsx."""
     if not dados:
@@ -289,6 +335,7 @@ def auditar(
     posts: list[dict] | None = None,
     imagens: list[tuple[str, bytes]] | None = None,
     contexto_marca: dict | None = None,
+    auditoria_anterior: dict | None = None,
 ) -> dict:
     """Roda a auditoria. Exige ao menos uma fonte de material."""
     import anthropic
@@ -303,7 +350,12 @@ def auditar(
     if not any(fontes.values()):
         raise ValueError("Envie ao menos o PDF do perfil, o export de desempenho ou textos de posts.")
 
-    partes = [b for b in (
+    hoje = date.today()
+    partes = [
+        f"Data de hoje: {hoje.strftime('%d/%m/%Y')}. Use-a em qualquer conta com datas.",
+    ]
+    partes += [b for b in (
+        _bloco_anterior(auditoria_anterior),
         _bloco_perfil(perfil_texto),
         _bloco_metricas(metricas),
         _bloco_posts(posts),
