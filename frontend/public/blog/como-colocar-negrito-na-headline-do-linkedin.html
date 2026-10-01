@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Como Colocar Negrito na Headline do LinkedIn</title>
+<meta name="description" content="O LinkedIn não tem negrito nativo na headline. Veja como usar caracteres Unicode para simular o efeito e quais riscos isso traz para acessibilidade.">
+<link rel="canonical" href="https://posthink.com.br/blog/como-colocar-negrito-na-headline-do-linkedin">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Como Colocar Negrito na Headline do LinkedIn">
+<meta property="og:description" content="Um guia prático sobre a técnica de caracteres Unicode para simular negrito na headline do LinkedIn, incluindo seus riscos e alternativas mais seguras.">
+<meta property="og:url" content="https://posthink.com.br/blog/como-colocar-negrito-na-headline-do-linkedin">
+<meta property="og:locale" content="pt_BR">
+<meta name="twitter:card" content="summary_large_image">
+
+<style>:root{--tinta:#14171A;--fraco:#5B6470;--linha:#E6E8EB;--fundo:#fff;--marca:#0A66C2}*{box-sizing:border-box}body{margin:0;background:var(--fundo);color:var(--tinta);font:17px/1.7 -apple-system,BlinkMacSystemFont,'Segoe UI',Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}.pt-wrap{max-width:720px;margin:0 auto;padding:0 20px}article,main{max-width:720px;margin:0 auto;padding:0 20px 80px}h1{font-size:clamp(30px,5vw,42px);line-height:1.18;letter-spacing:-.022em;margin:0 0 16px}h2{font-size:26px;line-height:1.3;letter-spacing:-.015em;margin:44px 0 14px}h3{font-size:20px;margin:32px 0 10px}p,li{color:#22262B}a{color:var(--marca)}a:hover{color:#004182}ul,ol{padding-left:22px}li{margin:6px 0}blockquote{margin:24px 0;padding:2px 0 2px 18px;border-left:3px solid var(--linha);color:var(--fraco)}code{font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:#F4F5F7;padding:2px 5px;border-radius:3px}pre{background:#F4F5F7;padding:16px 18px;border-radius:6px;overflow-x:auto}pre code{background:none;padding:0}table{width:100%;border-collapse:collapse;font-size:15px;margin:24px 0}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--linha)}th{font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--fraco)}img{max-width:100%;height:auto}hr{border:0;border-top:1px solid var(--linha);margin:40px 0}.pt-bar{border-bottom:1px solid var(--linha)}.pt-bar .pt-wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:18px;padding-bottom:18px}.pt-logo{font-weight:650;letter-spacing:-.02em;color:var(--tinta);text-decoration:none;font-size:18px}.pt-bar nav a{font-size:15px;color:var(--fraco);text-decoration:none;margin-left:18px}.pt-bar nav a:hover{color:var(--tinta)}.pt-cta{display:block;max-width:720px;margin:56px auto 0;padding:26px 24px;border:1px solid var(--linha);border-radius:10px}.pt-cta h2{margin:0 0 8px;font-size:21px}.pt-cta p{margin:0 0 16px;color:var(--fraco);font-size:16px}.pt-cta a.botao{display:inline-block;background:var(--marca);color:#fff;text-decoration:none;font-weight:600;font-size:15px;padding:11px 20px;border-radius:7px}.pt-cta a.botao:hover{background:#004182;color:#fff}.pt-rodape{border-top:1px solid var(--linha);margin-top:64px}.pt-rodape .pt-wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:24px;padding-bottom:40px;font-size:14px;color:var(--fraco)}.pt-rodape a{color:var(--fraco)}@media(max-width:600px){body{font-size:16px}}</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BlogPosting","headline":"Como Colocar Negrito na Headline do LinkedIn","description":"O LinkedIn não tem negrito nativo na headline. Veja como usar caracteres Unicode para simular o efeito e quais riscos isso traz para acessibilidade.","datePublished":"2026-10-01T22:34:54Z","dateModified":"2026-10-01T22:34:54Z","inLanguage":"pt-BR","mainEntityOfPage":{"@type":"WebPage","@id":"https://posthink.com.br/blog/como-colocar-negrito-na-headline-do-linkedin"},"author":{"@type":"Person","name":"Tales Hack","url":"https://posthink.com.br"},"publisher":{"@type":"Organization","name":"Posthink"},"keywords":"negrito-no-linkedin, headline-do-linkedin, caracteres-unicode, acessibilidade-leitores-de-tela"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"O negrito na headline do LinkedIn funciona em todos os dispositivos?","acceptedAnswer":{"@type":"Answer","text":"Não necessariamente. Como depende da fonte do sistema ter os glifos do bloco Unicode correspondente, alguns dispositivos e navegadores podem exibir caixas vazias (\"tofu\") no lugar das letras."}},{"@type":"Question","name":"Usar caracteres Unicode prejudica a busca do LinkedIn?","acceptedAnswer":{"@type":"Answer","text":"É provável que sim, embora o LinkedIn não documente publicamente seu algoritmo de busca. Como os caracteres são tecnicamente diferentes das letras padrão, uma busca por palavra-chave comum pode não encontrar o termo \"em negrito\"."}},{"@type":"Question","name":"Existe algum plugin oficial do LinkedIn para formatar a headline?","acceptedAnswer":{"@type":"Answer","text":"Não. O LinkedIn não oferece nenhuma ferramenta própria de formatação para o campo de headline. Qualquer conversor de texto em negrito Unicode é um site de terceiros, sem relação com a plataforma."}},{"@type":"Question","name":"O negrito Unicode afeta a acessibilidade do perfil?","acceptedAnswer":{"@type":"Answer","text":"Sim, é o principal risco da técnica. Leitores de tela podem não reconhecer os caracteres como letras do alfabeto padrão, soletrando-os de forma estranha ou ignorando-os, o que prejudica quem depende de tecnologia assistiva para ler o perfil."}}]}]}</script>
+</head>
+<body>
+<header class="pt-bar"><div class="pt-wrap"><a class="pt-logo" href="/">Posthink</a><nav><a href="/blog">Blog</a><a href="/">O produto</a></nav></div></header>
+<main>
+<article>
+<h1>Como Colocar Negrito na Headline do LinkedIn</h1>
+<p class="meta">
+<time datetime="2026-10-01T22:34:54Z">2026-10-01</time>
+· 6 min de leitura
+
+</p>
+<h2>Por que o LinkedIn não tem negrito nativo na headline</h2>
+<p>A <strong>headline do LinkedIn</strong> é o campo de texto que aparece logo abaixo do seu nome, no topo do perfil. Tecnicamente, é um campo de texto puro (plain text): não existe editor de rich text, não há botões de formatação, e o LinkedIn não interpreta tags HTML, Markdown ou qualquer sintaxe de marcação digitada ali.</p>
+<p>Isso é diferente do editor de posts do feed, que também não suporta Markdown nativo, mas pelo menos processa quebras de linha, menções e hashtags de forma estruturada. A headline não tem nem isso: é uma string única, sem metadados de formatação.</p>
+<p>Na prática, o LinkedIn renderiza exatamente os bytes que você salvou no campo. Se você digitar <code>**negrito**</code>, o perfil vai mostrar literalmente os asteriscos — porque o Markdown é uma convenção de exibição que depende de um interpretador, e o campo de headline não tem um.</p>
+<p>É por isso que surgiu a técnica de <strong>caracteres Unicode</strong> em negrito: ela não pede ao LinkedIn para formatar nada. Ela engana a renderização enviando caracteres que já nascem com aparência de negrito, letra por letra.</p>
+<p>Essa técnica tem uma consequência direta sobre <strong>acessibilidade (leitores de tela)</strong>: como os caracteres não são as letras padrão do alfabeto latino, softwares de leitura de tela podem não reconhecê-los como texto legível, e sim como símbolos desconhecidos. As três entidades — headline, Unicode, acessibilidade — estão amarradas nessa cadeia: o truque no Unicode resolve um problema visual na headline, mas cria um problema de acessibilidade que a maioria dos tutoriais ignora.</p>
+<h2>Como funciona o truque de caracteres Unicode em negrito</h2>
+<p>O Unicode tem um bloco chamado <a href="https://www.unicode.org/charts/PDF/U1D400.pdf" rel="noopener" target="_blank">Mathematical Alphanumeric Symbols</a>, originalmente criado para notação matemática — pense em variáveis em itálico ou negrito em fórmulas. Esse bloco inclui versões em negrito, itálico, fraktur e script de todo o alfabeto latino e de dígitos.</p>
+<p>O ponto central é este: <strong>𝗲𝘀𝘀𝗲𝘀 𝘀í𝗺𝗯𝗼𝗹𝗼𝘀 não são o "A" comum formatado em negrito</strong>. São pontos de código Unicode completamente diferentes do "A" padrão (U+0041). Visualmente parecem negrito porque foram desenhados para isso, mas para qualquer sistema que processe texto, são caracteres distintos — tão diferentes quanto "A" e "α".</p>
+<p>O navegador (ou o app) simplesmente possui uma fonte capaz de desenhar esses glifos, e por isso exibe como negrito. Por trás, o campo de headline continua sendo texto simples, sem nenhum atributo de formatação associado. Não existe "bold: true" armazenado em lugar nenhum — existe uma sequência diferente de caracteres.</p>
+<h2>Passo a passo para aplicar na headline</h2>
+<p>O processo é simples, mas vale seguir com cuidado:</p>
+<ol>
+<li><strong>Gerar o texto convertido.</strong> Existem conversores online que pegam seu texto normal e devolvem a versão com os caracteres do bloco Mathematical Alphanumeric Symbols. Não há ferramenta oficial do LinkedIn para isso — são sites de terceiros.</li>
+<li><strong>Copiar e colar diretamente no campo de headline</strong> do seu perfil, em Configurações &gt; Editar perfil.</li>
+<li><strong>Testar a visualização antes de salvar.</strong> Abra o perfil em desktop e no app mobile, idealmente em mais de um sistema operacional, porque a disponibilidade da fonte que desenha esses glifos varia.</li>
+</ol>
+<h2>Os riscos que ninguém menciona</h2>
+<p>A maioria dos tutoriais sobre "negrito no LinkedIn" para por aqui, como se fosse um hack sem custo. Não é.</p>
+<p><strong>Leitores de tela</strong> dependem de tabelas de mapeamento entre caractere Unicode e a fala sintetizada. Caracteres fora do intervalo padrão de letras latinas podem ser lidos letra por letra, soletrados, ignorados ou anunciados como "símbolo desconhecido" — dependendo do software e da configuração de idioma. O W3C trata esse tipo de problema nas diretrizes de <a href="https://www.w3.org/WAI/WCAG21/Understanding/non-text-content.html" rel="noopener" target="_blank">conteúdo textual acessível do WCAG</a>, que recomendam que informação transmitida visualmente também seja compreensível por tecnologia assistiva.</p>
+<p>Alguns dispositivos e combinações de fonte simplesmente não têm o glifo correspondente e mostram uma caixa vazia no lugar — o efeito chamado de "tofu" na terminologia de renderização de fontes. Isso acontece mais em sistemas operacionais mais antigos ou em fontes customizadas que não cobrem o bloco Mathematical Alphanumeric Symbols.</p>
+<p>Há ainda um risco de descoberta: a busca interna do LinkedIn provavelmente indexa por correspondência de string, e como os caracteres Unicode bold são tecnicamente diferentes de "A", "B", "C" comuns, uma busca por palavra-chave normal pode não encontrar seu perfil se o termo relevante estiver "em negrito". O LinkedIn não documenta publicamente o algoritmo de busca interna, então essa é uma inferência baseada em como indexação por texto costuma funcionar — não uma certeza absoluta.</p>
+<h2>Alternativas mais seguras para destacar a headline</h2>
+<p>Dá para ganhar destaque visual sem sair do alfabeto padrão:</p>
+<ul>
+<li><strong>Separadores simples</strong> como <code>|</code>, <code>•</code> ou <code>→</code> organizam a informação em blocos (cargo, especialidade, proposta de valor) sem comprometer a leitura por máquina.</li>
+<li><strong>Maiúsculas pontuais</strong> em uma ou duas palavras-chave chamam atenção sem trocar o alfabeto. "Ajudo founders a escalar <strong>GROWTH</strong> B2B" ainda é texto padrão, totalmente acessível.</li>
+<li><strong>Emojis</strong> funcionam como marcador visual e, diferente do Unicode bold, têm suporte de acessibilidade mais maduro: a maioria dos leitores de tela já anuncia emojis por nome (como "foguete" ou "seta para cima"), porque fazem parte do padrão Unicode documentado e amplamente testado para esse fim.</li>
+</ul>
+<p>Nenhuma dessas opções simula negrito de verdade — mas todas evitam os três riscos descritos na seção anterior.</p>
+<p>Separadores e títulos bem pensados na headline também aparecem com frequência em auditorias de perfil mais completas, que olham não só a formatação mas a estrutura inteira da apresentação. Se esse for o seu objetivo, vale ler o guia de <a href="/blog/auditoria-de-perfil-no-linkedin-como-deve-ser-feita">auditoria de perfil no LinkedIn e como ela deve ser feita</a>.</p>
+<h2>Unicode bold vs. outras formas de destaque: comparação</h2>
+<table>
+<thead>
+<tr>
+<th scope="col">Critério</th>
+<th scope="col">Unicode bold</th>
+<th scope="col">Caixa alta</th>
+<th scope="col">Emojis</th>
+<th scope="col">Separadores (|, •, →)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Legibilidade visual</td>
+<td>Alta</td>
+<td>Média-alta</td>
+<td>Alta</td>
+<td>Média</td>
+</tr>
+<tr>
+<td>Acessibilidade (leitores de tela)</td>
+<td>Baixa, comportamento inconsistente</td>
+<td>Alta, texto padrão</td>
+<td>Alta, suporte maduro a nomes de emoji</td>
+<td>Alta, símbolos reconhecidos</td>
+</tr>
+<tr>
+<td>Compatibilidade entre dispositivos</td>
+<td>Instável (risco de "tofu")</td>
+<td>Universal</td>
+<td>Quase universal</td>
+<td>Universal</td>
+</tr>
+<tr>
+<td>Indexação em busca</td>
+<td>Provavelmente prejudicada</td>
+<td>Sem impacto</td>
+<td>Sem impacto relevante</td>
+<td>Sem impacto</td>
+</tr>
+</tbody></table>
+<p>A tabela deixa claro o trade-off: o Unicode bold ganha em impacto visual imediato, mas perde em todos os outros critérios que afetam quem realmente vê e encontra seu perfil.</p>
+<blockquote>
+<p>Formatar a headline é só uma peça pequena da presença no LinkedIn — o que sustenta alcance de verdade é publicar com consistência. Ferramentas como o <a href="https://posthink.com.br" rel="noopener" target="_blank">Posthink</a> ajudam a manter esse ritmo, pesquisando o assunto, escrevendo na voz da marca e deixando a publicação final sempre sob revisão e aprovação da pessoa.</p>
+</blockquote>
+<h2>Perguntas Frequentes</h2>
+<h3>O negrito na headline do LinkedIn funciona em todos os dispositivos?</h3>
+<p>Não necessariamente. Como depende da fonte do sistema ter os glifos do bloco Unicode correspondente, alguns dispositivos e navegadores podem exibir caixas vazias ("tofu") no lugar das letras.</p>
+<h3>Usar caracteres Unicode prejudica a busca do LinkedIn?</h3>
+<p>É provável que sim, embora o LinkedIn não documente publicamente seu algoritmo de busca. Como os caracteres são tecnicamente diferentes das letras padrão, uma busca por palavra-chave comum pode não encontrar o termo "em negrito".</p>
+<h3>Existe algum plugin oficial do LinkedIn para formatar a headline?</h3>
+<p>Não. O LinkedIn não oferece nenhuma ferramenta própria de formatação para o campo de headline. Qualquer conversor de texto em negrito Unicode é um site de terceiros, sem relação com a plataforma.</p>
+<h3>O negrito Unicode afeta a acessibilidade do perfil?</h3>
+<p>Sim, é o principal risco da técnica. Leitores de tela podem não reconhecer os caracteres como letras do alfabeto padrão, soletrando-os de forma estranha ou ignorando-os, o que prejudica quem depende de tecnologia assistiva para ler o perfil.</p>
+
+</article>
+</main>
+<aside class="pt-cta"><h2>A IA escreve. Você continua sendo o autor.</h2><p>O Posthink pesquisa o assunto, escreve na sua voz e agenda — e nada vai ao ar sem você ler e aprovar. A publicação sai pela API oficial do LinkedIn.</p><a class="botao" href="/">Conhecer o Posthink</a></aside><footer class="pt-rodape"><div class="pt-wrap"><span>Posthink</span><span><a href="/blog">Todos os artigos</a></span></div></footer>
+
+</body>
+</html>
