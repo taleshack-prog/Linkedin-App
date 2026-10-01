@@ -31,4 +31,35 @@ for (const rota of ROTAS) {
 }
 console.log(`prerender: rotas como arquivo real -> ${ROTAS.join(", ")}`);
 
+// 3. Conserta as descrições faltantes na listagem do blog.
+//    O gerador de conteúdo escreve <p></p> em parte dos artigos, mesmo tendo
+//    gravado a meta description no próprio artigo. Resultado: a listagem
+//    perde o resumo e o rastreador vê um parágrafo vazio. Como ele regenera
+//    o blog/index.html, consertar o arquivo à mão não sobrevive — então o
+//    reparo roda aqui, no build, depois dele. É idempotente: só preenche o
+//    que está vazio, lendo a descrição do próprio artigo de destino.
+const listaBlog = path.resolve("dist/blog/index.html");
+if (fs.existsSync(listaBlog)) {
+  let lista = fs.readFileSync(listaBlog, "utf-8");
+  let preenchidas = 0;
+
+  lista = lista.replace(
+    /(<h2><a href="\/blog\/([^"]+)">.*?<\/a><\/h2>\s*<p>)(\s*)(<\/p>)/gs,
+    (inteiro, abre, slug, _vazio, fecha) => {
+      const artigo = path.resolve("dist/blog", `${slug}.html`);
+      if (!fs.existsSync(artigo)) return inteiro;
+      const fonte = fs.readFileSync(artigo, "utf-8");
+      const m = fonte.match(/<meta name="description" content="([^"]+)"/);
+      if (!m) return inteiro;
+      preenchidas++;
+      return `${abre}${m[1]}${fecha}`;
+    }
+  );
+
+  if (preenchidas > 0) {
+    fs.writeFileSync(listaBlog, lista);
+    console.log(`prerender: descrições do blog preenchidas -> ${preenchidas}`);
+  }
+}
+
 fs.rmSync(path.resolve("dist-ssr"), { recursive: true, force: true });
