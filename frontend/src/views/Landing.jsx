@@ -68,6 +68,9 @@ export default function Landing() {
             <a href="#auditoria">Auditoria</a>
             <a href="#planos">Planos</a>
             <a href="#perguntas">Perguntas</a>
+            {/* Link real (não âncora): é por aqui que o rastreador chega ao
+                blog. Só pelo sitemap, os artigos ficam órfãos. */}
+            <a href="/blog">Blog</a>
           </nav>
           <div className="lp-topo-acoes">
             <a className="lp-link-acao" href={entrar(false)}>Entrar</a>
@@ -434,6 +437,7 @@ export default function Landing() {
             <a href="#auditoria">Auditoria</a>
             <a href="#planos">Planos</a>
             <a href="#perguntas">Perguntas</a>
+            <a href="/blog">Blog</a>
             <a href="/privacidade">Política de Privacidade</a>
             <a href={entrar(false)}>Entrar</a>
           </nav>
