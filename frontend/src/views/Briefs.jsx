@@ -50,6 +50,19 @@ function BriefCard({ brief, onChanged, onRefreshPipeline }) {
         {brief.source_filename && <span className="mono">📎 {brief.source_filename}</span>}
         {brief.use_profile === false && <span className="mono">sem perfil de marca</span>}
       </div>
+
+      {/* Sem isto, "Gerando" não diz se está esperando worker ou se a chamada
+          está rodando — e os dois pedem providências diferentes. A distinção
+          já existe no status; o que faltava era explicá-la. */}
+      {generating && (
+        <p className="mono">
+          {brief.status === "pending"
+            ? "Na fila, aguardando um worker livre."
+            : "Pesquisando o tema na web antes de escrever — leva alguns minutos."}
+          {" "}Pode fechar esta tela: a geração continua no servidor.
+        </p>
+      )}
+
       {error && <div className="error">{error}</div>}
 
       {editing ? (
@@ -131,14 +144,23 @@ export default function Briefs({ accounts, onGenerated }) {
   const [verSugestoes, setVerSugestoes] = useState(true);
 
   const load = () => api.briefs().then(setBriefs).catch((e) => setError(e.message));
+
+  // Há algo em andamento? Decide o ritmo da consulta abaixo.
+  const algoGerando = briefs.some((b) => b.status === "generating" || b.status === "pending");
+
+  useEffect(() => { load(); }, []);
+
+  // Ritmo adaptativo. Antes era 8s fixo: parado, pedia à toa; gerando, o
+  // rascunho podia ficar até 8s pronto no banco sem aparecer na tela. Agora
+  // consulta rápido só enquanto há pauta em andamento.
   useEffect(() => {
-    load();
+    const intervalo = algoGerando ? 3000 : 20000;
     const t = setInterval(() => {
       load();
       onGenerated(); // atualiza contagens do pipeline enquanto gera
-    }, 8000);
+    }, intervalo);
     return () => clearInterval(t);
-  }, []);
+  }, [algoGerando]);
 
   useEffect(() => {
     if (!accountId && accounts.length) setAccountId(accounts[0].id);
@@ -172,7 +194,10 @@ export default function Briefs({ accounts, onGenerated }) {
       setInstructions("");
       setFile(null);
       if (fileInput.current) fileInput.current.value = "";
-      setNotice("Pauta enviada. A IA pesquisa o tema e os rascunhos aparecem em Rascunhos.");
+      setNotice(
+        "Pauta enviada. A IA pesquisa o tema na web antes de escrever, então leva "
+        + "alguns minutos — os rascunhos aparecem sozinhos aqui e em Rascunhos."
+      );
       load();
     } catch (e) {
       setError(e.message);
