@@ -81,10 +81,21 @@ def generate_from_brief(self, brief_id: str, linkedin_account_id: str):
         db.commit()
     except Exception as exc:
         db.rollback()
+        # A task tenta 3 vezes (1 + max_retries), com 60s entre elas. Marcar
+        # "falhou" já na primeira fazia o usuário ver o erro — e ser instruído a
+        # tentar de novo — enquanto duas tentativas ainda estavam a caminho. Pior:
+        # quando ele finalmente via a falha, a mensagem sugeria instabilidade
+        # temporária, sem dizer que o temporário já tinha sido descartado 3x.
+        ultima = self.request.retries >= self.max_retries
         brief = db.get(ContentBrief, brief_id)
         if brief:
-            brief.status = "failed"
-            brief.error = str(exc)[:2000]
+            if ultima:
+                brief.status = "failed"
+                tentativas = self.max_retries + 1
+                brief.error = f"{exc} (tentado {tentativas}x, com 1 min entre as tentativas)"[:2000]
+            else:
+                brief.status = "generating"  # ainda há tentativa pela frente
+                brief.error = None
             db.commit()
         raise self.retry(exc=exc)
     finally:

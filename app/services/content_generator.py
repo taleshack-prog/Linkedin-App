@@ -93,12 +93,63 @@ def parse_json_lenient(text: str) -> dict:
     """Extrai e parseia o JSON de texto livre, tolerando caracteres de controle."""
     start, end = text.find("{"), text.rfind("}")
     if start == -1 or end == -1:
-        raise ValueError(f"Resposta sem JSON parseável: {text[:300]}")
+        # Esta mensagem vai parar no card da pauta, então fala com o usuário —
+        # mas carrega um pedaço do que veio, senão não há como diagnosticar depois.
+        raise ValueError(
+            "A geração não devolveu os posts no formato esperado. Se repetir, "
+            f"reescreva o tema de forma mais direta. (recebido: {text[:120]!r})"
+        )
     raw = text[start : end + 1]
     try:
         return json.loads(raw, strict=False)
     except json.JSONDecodeError:
         return json.loads(_escape_ctrl_in_strings(raw), strict=False)
+
+
+def _tem_tool_use(msg) -> bool:
+    """A resposta chegou a chamar emit_posts?"""
+    return any(
+        getattr(b, "type", None) == "tool_use" and getattr(b, "name", "") == "emit_posts"
+        for b in msg.content
+    )
+
+
+def _estruturar_texto(client, s, msg, user_prompt):
+    """Segunda chance: converte a prosa do modelo nos posts, sem reescrevê-la.
+
+    Vale a chamada extra porque a alternativa é a pauta falhar inteira — e a
+    pesquisa, que é a parte cara, já foi feita. Aqui não há web_search e o
+    tool_choice obriga a ferramenta, então ou volta JSON válido ou volta erro
+    da API: não há um terceiro caminho onde o modelo responda em prosa de novo.
+    """
+    texto = "".join(
+        b.text for b in msg.content if getattr(b, "type", None) == "text"
+    ).strip()
+    if len(texto) < MIN_COMMENTARY_CHARS:
+        return None  # não sobrou material: deixa falhar com a mensagem normal
+    try:
+        return client.messages.create(
+            model=s.ANTHROPIC_MODEL,
+            max_tokens=8192,
+            system=SYSTEM_PROMPT,
+            messages=[
+                {"role": "user", "content": user_prompt},
+                {"role": "assistant", "content": texto},
+                {
+                    "role": "user",
+                    "content": (
+                        "Você respondeu em texto corrido em vez de usar a ferramenta. "
+                        "Chame emit_posts com os posts finais a partir do que você já "
+                        "escreveu acima. Não pesquise de novo e não troque o conteúdo: "
+                        "apenas estruture o que está escrito."
+                    ),
+                },
+            ],
+            tools=[POSTS_TOOL],
+            tool_choice={"type": "tool", "name": "emit_posts"},
+        )
+    except Exception:  # noqa: BLE001
+        return None  # o resgate é melhor-esforço; a falha original é que vale
 
 
 def extract_posts_payload(msg) -> dict:
@@ -219,14 +270,35 @@ def generate_posts(
 
     msg = client.messages.create(
         model=s.ANTHROPIC_MODEL,
-        max_tokens=8192,
+        # 8192 era apertado: o orçamento de saída cobre as consultas de busca,
+        # as citações e os N posts. Tema que rende muita pesquisa estourava o
+        # limite e voltava com o tool_use cortado no meio — falha determinística,
+        # que repetia igual nas tentativas seguintes.
+        max_tokens=16384,
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": user_prompt}],
+        # sem tool_choice de propósito: forçar emit_posts aqui impediria a
+        # web_search de rodar antes. O preço é o modelo poder responder em
+        # prosa — tratado no resgate abaixo.
         tools=[
             {"type": "web_search_20250305", "name": "web_search", "max_uses": 5},
             POSTS_TOOL,
         ],
     )
+
+    if msg.stop_reason == "max_tokens":
+        raise ValueError(
+            "A resposta foi cortada no limite de tamanho antes de ficar pronta. "
+            "Gere menos posts de uma vez nesta pauta, ou deixe o tema mais específico."
+        )
+
+    # O modelo pesquisou e respondeu em texto corrido, sem chamar a ferramenta.
+    # Repetir a chamada idêntica tende a repetir o mesmo desfecho, então aqui a
+    # segunda chamada só estrutura o que ele já escreveu — sem pesquisar de novo.
+    if not _tem_tool_use(msg):
+        resgate = _estruturar_texto(client, s, msg, user_prompt)
+        if resgate is not None:
+            msg = resgate
 
     data = extract_posts_payload(msg)
 
@@ -255,6 +327,6 @@ def generate_posts(
     if not normalized:
         raise ValueError(
             "A geração não produziu texto válido (resposta vazia ou incompleta). "
-            "Costuma ser instabilidade temporária — tente gerar novamente."
+            "Se repetir, reescreva o tema de forma mais direta ou gere menos posts."
         )
     return normalized[:count]
