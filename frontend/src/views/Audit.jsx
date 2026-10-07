@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
+import { IDIOMAS, IDIOMA_PADRAO } from "../idiomas.js";
 
 /* Auditoria de marca.
 
@@ -35,6 +36,7 @@ export default function Audit() {
   const [analyticsXlsx, setAnalyticsXlsx] = useState(null);
   const [imagens, setImagens] = useState([]);
   const [postsTexto, setPostsTexto] = useState("");
+  const [idioma, setIdioma] = useState(IDIOMA_PADRAO);
   const [comoFazer, setComoFazer] = useState(false);
   const [cota, setCota] = useState(null);
   const refPdf = useRef(null);
@@ -52,7 +54,7 @@ export default function Audit() {
   async function rodar() {
     setRodando(true); setErro("");
     try {
-      const nova = await api.runAudit({ perfilPdf, analyticsXlsx, postsTexto, imagens });
+      const nova = await api.runAudit({ perfilPdf, analyticsXlsx, postsTexto, imagens, idioma });
       setAuditoria(nova);
       api.auditQuota().then(setCota).catch(() => {});
       setPerfilPdf(null); setAnalyticsXlsx(null); setImagens([]); setPostsTexto("");
@@ -129,6 +131,19 @@ export default function Audit() {
           <textarea id="aud-posts" value={postsTexto} rows={4}
                     placeholder={"Cole aqui o texto de posts que você quer que entrem na análise.\n---\nOutro post."}
                     onChange={(e) => setPostsTexto(e.target.value)} />
+        </div>
+
+        <div className="field" style={{ maxWidth: 260 }}>
+          <label htmlFor="aud-idioma">Idioma do diagnóstico</label>
+          <select id="aud-idioma" value={idioma} onChange={(e) => setIdioma(e.target.value)}>
+            {IDIOMAS.map((i) => (
+              <option key={i.codigo} value={i.codigo}>{i.rotulo}</option>
+            ))}
+          </select>
+          <span className="mono">
+            vale só para o texto do diagnóstico — seu perfil pode estar em
+            português e a análise sair em inglês
+          </span>
         </div>
 
         <div className="aud-acoes">

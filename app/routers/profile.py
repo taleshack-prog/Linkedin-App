@@ -14,6 +14,7 @@ from app.database import get_db
 from app.models import BrandProfile, ProfileAudit, User
 from app.security import get_current_user, require_subscription
 from app.services.audit_ingest import rodar_auditoria
+from app.services.profile_auditor import IDIOMA_PADRAO, IDIOMAS
 from app.services.linkedin_export import ExportError, parse_analytics_xlsx
 from app.services.plans import require_feature
 from app.services.text_extractor import ExtractionError, extract_text, limpar_contato_do_perfil
@@ -140,6 +141,7 @@ async def criar_auditoria(
     analytics_xlsx: UploadFile | None = File(default=None),
     posts_texto: str | None = Form(default=None),
     imagens: list[UploadFile] = File(default=[]),
+    idioma: str = Form(default=IDIOMA_PADRAO),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
     _: None = Depends(require_subscription),
@@ -205,6 +207,9 @@ async def criar_auditoria(
             metricas=metricas,
             posts_colados=colados,
             imagens=imgs or None,
+            # idioma desconhecido cai no padrão em vez de chegar ao prompt:
+            # o campo vem do formulário e não deve virar instrução livre
+            idioma=idioma if idioma in IDIOMAS else IDIOMA_PADRAO,
         )
     except ValueError as exc:
         db.rollback()

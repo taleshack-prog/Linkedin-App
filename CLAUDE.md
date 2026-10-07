@@ -128,4 +128,12 @@ paywall de novo.
       indicado ganha +15 dias na 1a assinatura; só conta assinante pago; tudo
       idempotente (services/referrals.py)
 - [x] LGPD: política publicada + exportação + exclusão de conta/dados
+- [x] Idioma do CONTEÚDO (pt-BR | en-US): seletor na pauta (criar e editar) e na
+      auditoria. Fonte única: frontend/src/idiomas.js e IDIOMAS em
+      services/profile_auditor.py — os códigos precisam bater. ATENÇÃO: o idioma
+      entra cru no prompt ("Idioma dos posts: X"), então rota que o aceita valida
+      contra a lista e cai no padrão — campo de formulário não vira instrução livre.
+- [ ] i18n da INTERFACE (strings das telas) — não feito e não confundir com o acima.
+      Só vale quando houver assinante de fora; e aí o gargalo real é a moeda
+      (planos em BRL), não o idioma da tela.
 - [ ] w_organization_social (Company Pages) — requer review Marketing API (2-4 semanas)

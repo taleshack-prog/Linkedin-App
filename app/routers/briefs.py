@@ -9,6 +9,7 @@ from app.database import get_db
 from app.models import ContentBrief, LinkedInAccount, User
 from app.security import get_current_user, require_subscription
 from app.services.plans import require_feature
+from app.services.profile_auditor import IDIOMA_PADRAO, IDIOMAS
 from app.services.usage import generation_quota
 from app.services.text_extractor import ExtractionError, extract_text
 from app.tasks.generation_tasks import generate_from_brief
@@ -93,7 +94,10 @@ async def create_brief(
         theme=theme,
         instructions=instructions or None,
         posts_per_week=posts_per_week,
-        language=language,
+        # o idioma vai cru para o prompt do gerador ("Idioma dos posts: X"), então
+        # só entra se for um código conhecido — campo de formulário não vira
+        # instrução livre para o modelo
+        language=language if language in IDIOMAS else IDIOMA_PADRAO,
         use_profile=use_profile,
         source_text=source_text,
         source_filename=source_filename,
@@ -143,6 +147,8 @@ def edit_brief(
             raise HTTPException(422, "posts_per_week deve estar entre 1 e 7")
         brief.posts_per_week = payload.posts_per_week
     if payload.language is not None:
+        if payload.language not in IDIOMAS:
+            raise HTTPException(422, f"Idioma não suportado: {payload.language}")
         brief.language = payload.language
     if payload.use_profile is not None:
         brief.use_profile = payload.use_profile

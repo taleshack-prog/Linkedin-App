@@ -29,6 +29,40 @@ MAX_CHARS_POR_POST = 1_200
 MAX_IMAGENS = 4
 MAX_BYTES_IMAGEM = 4_000_000  # limite prático por imagem na API
 
+# Idiomas em que a auditoria pode ser escrita. A chave é a mesma usada em
+# Brief.language, para que pauta e diagnóstico falem a mesma língua.
+IDIOMAS = {
+    "pt-BR": "português do Brasil",
+    "en-US": "inglês americano",
+}
+IDIOMA_PADRAO = "pt-BR"
+
+
+def _bloco_idioma(idioma: str | None) -> str:
+    """Instrução de idioma, anexada ao final do system prompt.
+
+    Fica fora do SYSTEM_PROMPT porque muda a cada chamada, e precisa dizer uma
+    coisa que não é óbvia para o modelo: só o texto corrido muda de idioma.
+    `area`, `severidade` e `impacto` são enums do schema da ferramenta — se
+    vierem traduzidos, a chamada é recusada e a auditoria inteira falha. As
+    chaves do JSON, idem.
+    """
+    nome = IDIOMAS.get(idioma or "", IDIOMAS[IDIOMA_PADRAO])
+    return (
+        "\n\nIDIOMA DA RESPOSTA\n\n"
+        f"Escreva em {nome} todo o texto corrido: diagnóstico, evidência, título e "
+        "descrição das ações, a base do score, as pautas sugeridas e as diretrizes "
+        "de geração.\n"
+        "NÃO traduza os campos controlados. As chaves do JSON e os valores de "
+        "`area`, `severidade` e `impacto` continuam exatamente como o schema da "
+        "ferramenta os define, em português. Traduzir qualquer um faz a chamada "
+        "ser recusada.\n"
+        "O material enviado pode estar em outro idioma que não o da resposta — um "
+        "perfil escrito em português pode ser auditado em inglês, e isso é normal. "
+        "Quando citar evidência, reproduza o trecho no idioma original, entre "
+        f"aspas, e comente em {nome}."
+    )
+
 SYSTEM_PROMPT = """Você é um consultor de posicionamento no LinkedIn. Audita o perfil e o conteúdo de uma pessoa e devolve um diagnóstico acionável.
 
 COMO VOCÊ TRABALHA
@@ -41,7 +75,7 @@ REGRAS INEGOCIÁVEIS
 2. Toda afirmação sua cita a base: o que no material te levou àquilo. O campo `evidencia` é obrigatório em cada achado e deve citar o material, não o seu raciocínio.
 3. Métrica pequena é métrica pequena. Com 168 impressões em 7 dias, você não tem base para concluir "qual formato performa melhor" — diga isso em vez de fingir análise. Volume baixo permite observação, não conclusão.
 4. Não elogie para suavizar. O valor está no que está errado e em como consertar. Reconheça acertos só quando forem reproduzíveis — e diga como reproduzir.
-5. Escreva para a pessoa, em segunda pessoa, direto. Nada de "o usuário deveria". Português do Brasil.
+5. Escreva para a pessoa, em segunda pessoa, direto. Nada de "o usuário deveria". O idioma da resposta vem informado no fim destas instruções.
 6. A data de hoje vem informada no material. Use-a para qualquer conta com datas. Não presuma o ano: um cargo iniciado em setembro de 2025 que hoje soma "1 ano 1 mês" está certo se hoje for outubro de 2026. Só aponte data impossível depois de fazer a conta com a data informada.
 7. Separe o que a máquina controla do que a pessoa controla. Cada post vem marcado com a origem. Os escritos no Posthink passaram pela IA de geração: vício de escrita neles é instrução que cabe em `para_geracao.evitar`. Os publicados fora do Posthink são hábito da pessoa, e o gerador não tem como mudá-los — isso vira `acoes`, nunca `evitar`. Atribuir errado faz duas coisas ruins ao mesmo tempo: enche o prompt de geração com regra que ele não pode violar, e esconde da pessoa um conselho que era para ela.
 
@@ -336,6 +370,7 @@ def auditar(
     imagens: list[tuple[str, bytes]] | None = None,
     contexto_marca: dict | None = None,
     auditoria_anterior: dict | None = None,
+    idioma: str = IDIOMA_PADRAO,
 ) -> dict:
     """Roda a auditoria. Exige ao menos uma fonte de material."""
     import anthropic
@@ -405,7 +440,7 @@ def auditar(
     msg = client.messages.create(
         model=s.ANTHROPIC_MODEL,
         max_tokens=4096,
-        system=SYSTEM_PROMPT,
+        system=SYSTEM_PROMPT + _bloco_idioma(idioma),
         messages=[{"role": "user", "content": conteudo}],
         tools=[AUDIT_TOOL],
         tool_choice={"type": "tool", "name": "emit_audit"},

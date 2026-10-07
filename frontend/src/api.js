@@ -99,11 +99,12 @@ export const api = {
   audit: () => request("/profile/audit"),
   auditQuota: () => request("/profile/audit/quota"),
   auditHistory: () => request("/profile/audit/historico"),
-  runAudit: async ({ perfilPdf, analyticsXlsx, postsTexto, imagens }) => {
+  runAudit: async ({ perfilPdf, analyticsXlsx, postsTexto, imagens, idioma }) => {
     const form = new FormData();
     if (perfilPdf) form.append("perfil_pdf", perfilPdf);
     if (analyticsXlsx) form.append("analytics_xlsx", analyticsXlsx);
     if (postsTexto) form.append("posts_texto", postsTexto);
+    if (idioma) form.append("idioma", idioma);
     (imagens || []).forEach((img) => form.append("imagens", img));
     const resp = await fetch(`${BASE}/profile/audit`, { method: "POST", headers: authHeaders(), body: form });
     if (!resp.ok) {

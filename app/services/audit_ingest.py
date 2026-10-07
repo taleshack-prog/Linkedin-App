@@ -22,7 +22,7 @@ from sqlalchemy.orm import Session
 
 from app.models import AnalyticsSnapshot, BrandProfile, Post, PostMetric, ProfileAudit, User
 from app.services.linkedin_export import urn_para_share_id
-from app.services.profile_auditor import auditar
+from app.services.profile_auditor import IDIOMA_PADRAO, auditar
 
 MAX_POSTS_PARA_AUDITORIA = 25
 
@@ -255,6 +255,7 @@ def rodar_auditoria(
     metricas: dict | None,
     posts_colados: list[str] | None,
     imagens: list[tuple[str, bytes]] | None,
+    idioma: str = IDIOMA_PADRAO,
 ) -> ProfileAudit:
     """Orquestra: persiste o export, casa, audita e grava."""
     if metricas:
@@ -303,6 +304,7 @@ def rodar_auditoria(
         imagens=imagens,
         contexto_marca=contexto,
         auditoria_anterior=bloco_anterior,
+        idioma=idioma,
     )
 
     score = resultado.get("score") or {}

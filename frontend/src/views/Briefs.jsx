@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
+import { IDIOMAS, IDIOMA_PADRAO } from "../idiomas.js";
 
 const BRIEF_LABEL = {
   pending: "Na fila",
@@ -14,6 +15,7 @@ function BriefCard({ brief, onChanged, onRefreshPipeline }) {
   const [theme, setTheme] = useState(brief.theme);
   const [instructions, setInstructions] = useState(brief.instructions || "");
   const [count, setCount] = useState(brief.posts_per_week);
+  const [idioma, setIdioma] = useState(brief.language || IDIOMA_PADRAO);
   const [useProfile, setUseProfile] = useState(brief.use_profile !== false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -27,6 +29,7 @@ function BriefCard({ brief, onChanged, onRefreshPipeline }) {
     run(async () => {
       await api.updateBrief(brief.id, {
         theme, instructions: instructions || null, posts_per_week: count,
+        language: idioma,
         use_profile: useProfile,
       });
       setEditing(false);
@@ -59,6 +62,14 @@ function BriefCard({ brief, onChanged, onRefreshPipeline }) {
             <label htmlFor={`bi-${brief.id}`}>Instruções</label>
             <textarea id={`bi-${brief.id}`} style={{ minHeight: 60 }} value={instructions}
               onChange={(e) => setInstructions(e.target.value)} />
+          </div>
+          <div className="field" style={{ maxWidth: 220 }}>
+            <label htmlFor={`bl-${brief.id}`}>Idioma dos posts</label>
+            <select id={`bl-${brief.id}`} value={idioma} onChange={(e) => setIdioma(e.target.value)}>
+              {IDIOMAS.map((i) => (
+                <option key={i.codigo} value={i.codigo}>{i.rotulo}</option>
+              ))}
+            </select>
           </div>
           <div className="field" style={{ maxWidth: 200 }}>
             <label htmlFor={`bc-${brief.id}`}>Quantidade de posts</label>
@@ -104,6 +115,7 @@ export default function Briefs({ accounts, onGenerated }) {
   const [theme, setTheme] = useState("");
   const [instructions, setInstructions] = useState("");
   const [count, setCount] = useState(3);
+  const [idioma, setIdioma] = useState(IDIOMA_PADRAO);
   const [accountId, setAccountId] = useState("");
   const [file, setFile] = useState(null);
   const [useProfile, setUseProfile] = useState(true);
@@ -150,7 +162,7 @@ export default function Briefs({ accounts, onGenerated }) {
           theme,
           instructions: instructions || null,
           posts_per_week: count,
-          language: "pt-BR",
+          language: idioma,
           linkedin_account_id: accountId,
           use_profile: useProfile,
         },
@@ -310,6 +322,14 @@ export default function Briefs({ accounts, onGenerated }) {
               <select id="acc" value={accountId} onChange={(e) => setAccountId(e.target.value)}>
                 {accounts.map((a) => (
                   <option key={a.id} value={a.id}>{a.display_name || a.person_urn}</option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="lang">Idioma dos posts</label>
+              <select id="lang" value={idioma} onChange={(e) => setIdioma(e.target.value)}>
+                {IDIOMAS.map((i) => (
+                  <option key={i.codigo} value={i.codigo}>{i.rotulo}</option>
                 ))}
               </select>
             </div>
