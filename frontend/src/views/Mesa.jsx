@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { piorEstado } from "../conexao.js";
 
 /* Mesa — o canvas de nós. Cada nó é uma tela; os fios são o caminho real
    do post (pauta -> rascunho -> agendado -> publicado, com falha ramificando).
@@ -74,6 +75,10 @@ export default function Mesa({ counts = {}, accounts = [], features = {}, isAdmi
   const n = (k) => counts[k] || 0;
   const naFila = n("approved") + n("publishing");
   const problema = accounts.filter((a) => a.status && a.status !== "active");
+  // A conexão morre sozinha em ~60 dias (ver conexao.js). Avisar só quando já
+  // morreu é avisar tarde: a essa altura a pessoa já agendou no vazio.
+  const conexao = piorEstado(accounts);
+  const expirando = !problema.length && conexao.chave === "expirando";
   const plano = features.plan_name || features.plan || null;
 
   return (
@@ -119,13 +124,15 @@ export default function Mesa({ counts = {}, accounts = [], features = {}, isAdmi
               estado="Para quem você escreve e o que quer construir." />
 
           <No chave="accounts" classe="no-accounts" refEl={registrar("accounts")} onAbrir={onAbrir}
-              tipo={problema.length ? "ação necessária" : "autoriza a publicação"}
-              alerta={problema.length > 0}
-              cor={problema.length ? "failed" : "published"}
+              tipo={problema.length ? "ação necessária" : expirando ? "expira em breve" : "autoriza a publicação"}
+              alerta={problema.length > 0 || Boolean(expirando)}
+              cor={problema.length ? "failed" : expirando ? "draft" : "published"}
               titulo="Contas LinkedIn" numero={accounts.length}
               estado={problema.length
                 ? `${problema.length === 1 ? "Uma conta precisa" : `${problema.length} contas precisam`} reconectar — o token expirou e só o dono renova.`
-                : "Publicamos pelo canal oficial, com a sua autorização."}
+                : expirando
+                  ? `A conexão expira em ${conexao.dias} dia${conexao.dias === 1 ? "" : "s"}. Depois disso as publicações param até você reconectar.`
+                  : "Publicamos pelo canal oficial, com a sua autorização."}
               pe={accounts.length ? `${accounts.length - problema.length} de ${accounts.length} ativas` : "nenhuma conta conectada"} />
 
           {isAdmin && (

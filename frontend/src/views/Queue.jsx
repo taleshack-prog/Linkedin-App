@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api, STATUS_LABEL } from "../api.js";
 import { applyStyle, checkSelection, stripStyles } from "../format.js";
+import { estadoConexao, piorEstado, viveAte } from "../conexao.js";
 
 const MAX = 3000;
 
@@ -178,7 +179,7 @@ function FormatBar({ textareaRef, value, onChange, onNotice }) {
   );
 }
 
-function PostCard({ post, onChanged, canFormat }) {
+function PostCard({ post, onChanged, canFormat, conta = null }) {
   const [editing, setEditing] = useState(false);
   const [commentary, setCommentary] = useState(post.commentary);
   const [hashtags, setHashtags] = useState(post.hashtags.join(" "));
@@ -219,6 +220,8 @@ function PostCard({ post, onChanged, canFormat }) {
       });
       setEditing(false);
     });
+
+  const contaMorta = conta != null && estadoConexao(conta).chave === "morta";
 
   const approve = () => run(() => api.approvePost(post.id, localToIso(publishAt)));
   const cancel = () => run(() => api.cancelPost(post.id));
@@ -367,9 +370,21 @@ function PostCard({ post, onChanged, canFormat }) {
                   value={publishAt}
                   onChange={(e) => setPublishAt(e.target.value)}
                 />
-                <button className="btn primary" onClick={approve} disabled={busy || !publishAt}>
+                <button className="btn primary" onClick={approve}
+                        disabled={busy || !publishAt || contaMorta}>
                   Aprovar e agendar
                 </button>
+                {/* Data marcada depois do token vencer: o post seria aceito
+                    aqui e recusado pelo LinkedIn na hora. Avisa, mas não
+                    bloqueia — dá para reconectar antes da data chegar. */}
+                {!contaMorta && publishAt && !viveAte(conta, localToIso(publishAt)) && (
+                  <span className="mono">
+                    nessa data a conexão já terá expirado — reconecte antes
+                  </span>
+                )}
+                {contaMorta && (
+                  <span className="mono">reconecte o LinkedIn em Contas para agendar</span>
+                )}
               </>
             )}
             {editable && (
@@ -398,9 +413,10 @@ function PostCard({ post, onChanged, canFormat }) {
   );
 }
 
-export default function Queue({ status, title, subtitle, refreshKey, canFormat }) {
+export default function Queue({ status, title, subtitle, refreshKey, canFormat, accounts = [] }) {
   const [posts, setPosts] = useState(null);
   const [error, setError] = useState("");
+  const conexao = piorEstado(accounts);
 
   async function load() {
     try {
@@ -421,13 +437,37 @@ export default function Queue({ status, title, subtitle, refreshKey, canFormat }
         <p>{subtitle}</p>
       </header>
       {error && <div className="notice err">{error}</div>}
+
+      {/* A conexão com o LinkedIn expira sozinha e não se renova (ver conexao.js).
+          O aviso mora aqui, e não só em Contas, porque é aqui que se agenda. */}
+      {conexao.chave === "morta" && (
+        <div className="notice err">
+          A conexão com o LinkedIn expirou. Agendar não vai adiantar — o LinkedIn
+          recusa a publicação na hora de sair. Reconecte em <strong>Contas</strong>.
+        </div>
+      )}
+      {conexao.chave === "expirando" && (
+        <div className="notice">
+          A conexão com o LinkedIn expira em {conexao.dias} dia{conexao.dias === 1 ? "" : "s"}.
+          Depois disso as publicações param até você reconectar em <strong>Contas</strong>.
+        </div>
+      )}
+
       {posts === null && <div className="empty">Carregando…</div>}
       {posts && posts.length === 0 && (
         <div className="empty">
           Nada por aqui. {status === "draft" ? "Crie uma pauta para gerar rascunhos." : ""}
         </div>
       )}
-      {posts && posts.map((p) => <PostCard key={p.id} post={p} onChanged={load} canFormat={canFormat} />)}
+      {posts && posts.map((p) => (
+        <PostCard
+          key={p.id}
+          post={p}
+          onChanged={load}
+          canFormat={canFormat}
+          conta={accounts.find((a) => a.id === p.linkedin_account_id) || null}
+        />
+      ))}
     </>
   );
 }

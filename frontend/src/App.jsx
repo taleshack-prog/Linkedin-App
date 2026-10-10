@@ -261,6 +261,7 @@ export default function App() {
               subtitle={stage.subtitle}
               refreshKey={refreshKey}
               canFormat={Boolean(features.text_formatting)}
+              accounts={accounts}
             />
           )}
           {view === "calendar" && <Calendar refreshKey={refreshKey} />}

@@ -19,6 +19,9 @@ class PostOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
+    # Para qual conta este post sai. A tela precisa saber: num plano com várias
+    # contas, o aviso de conexão expirando só faz sentido na conta de destino.
+    linkedin_account_id: uuid.UUID | None = None
     commentary: str
     hashtags: list[str]
     sources: list

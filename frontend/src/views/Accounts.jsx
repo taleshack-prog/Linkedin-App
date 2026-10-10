@@ -1,5 +1,6 @@
 import { api, clearAuth, getToken } from "../api.js";
 import { useEffect, useState } from "react";
+import { estadoConexao } from "../conexao.js";
 
 export default function Accounts({ accounts, onChanged }) {
   const [error, setError] = useState("");
@@ -103,13 +104,14 @@ export default function Accounts({ accounts, onChanged }) {
       </div>
 
       {accounts.map((a) => {
-        const days = Math.floor((new Date(a.access_expires_at) - Date.now()) / 86400000);
-        const ok = a.status === "active";
+        const { chave, dias } = estadoConexao(a);
+        const ok = chave === "ok";
+        const morta = chave === "morta";
         return (
-          <article key={a.id} className={`card ${ok ? "published" : "failed"}`}>
+          <article key={a.id} className={`card ${morta ? "failed" : ok ? "published" : "draft"}`}>
             <div className="meta">
-              <span className={`chip ${ok ? "published" : "failed"}`}>
-                {ok ? "Ativa" : "Reautenticação necessária"}
+              <span className={`chip ${morta ? "failed" : ok ? "published" : "draft"}`}>
+                {morta ? "Reautenticação necessária" : ok ? "Ativa" : "Expira em breve"}
               </span>
               <span className="mono">{a.person_urn}</span>
             </div>
@@ -117,8 +119,18 @@ export default function Accounts({ accounts, onChanged }) {
               <strong>{a.display_name || "Sem nome"}</strong>
             </p>
             <span className="mono">
-              {ok ? `token expira em ${days} dia${days === 1 ? "" : "s"}` : "reconecte pelo botão acima"}
+              {morta
+                ? "reconecte pelo botão acima"
+                : `conexão expira em ${dias} dia${dias === 1 ? "" : "s"}`}
             </span>
+            {/* O LinkedIn não dá refresh token fora do MDP: não há renovação
+                automática possível, e dizer isso evita a sensação de defeito. */}
+            {!ok && (
+              <p className="mono" style={{ marginTop: 6 }}>
+                O LinkedIn não permite renovação automática nesta modalidade de
+                acesso — a reconexão é manual e só você pode fazer.
+              </p>
+            )}
           </article>
         );
       })}

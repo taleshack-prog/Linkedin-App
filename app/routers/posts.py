@@ -94,6 +94,22 @@ def approve_post(
     post = _own_post(post_id, db, user)
     if post.status != PostStatus.draft:
         raise HTTPException(409, f"Post em status {post.status.value}, não aprovável")
+
+    # Conta morta = publicação condenada desde o clique. Sem refresh token (a
+    # plataforma não concede fora do MDP), a conexão expira em ~60 dias e só o
+    # dono reconecta. Agendar aqui dava "agendado" na tela e 401 silencioso na
+    # hora de publicar — foi assim que um usuário perdeu dois posts sem saber.
+    conta = db.get(LinkedInAccount, post.linkedin_account_id) if post.linkedin_account_id else None
+    if conta is None:
+        raise HTTPException(409, "Este post não tem conta do LinkedIn associada.")
+    if conta.status != "active":
+        raise HTTPException(
+            409,
+            f"A conexão com o LinkedIn de \"{conta.display_name or 'sua conta'}\" expirou. "
+            "Reconecte em Contas antes de agendar — sem isso a publicação seria recusada "
+            "pelo LinkedIn na hora de sair.",
+        )
+
     post.status = PostStatus.approved
     post.publish_at = payload.publish_at
     db.commit()
