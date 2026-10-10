@@ -38,7 +38,16 @@ beat 6h  --> refresh_expiring_tokens (renovação proativa)
 - Sucesso = 201 + header `x-restli-id` (URN do post)
 - SEM agendamento nativo (por isso o Celery beat), SEM edição de post publicado
   (corrigir = deletar e recriar), SEM @mentions/enquetes/documentos/artigos via API
-- Access token ~60 dias; refresh token ~365 dias; rate ~100 calls/dia/membro
+- Access token ~60 dias; rate ~100 calls/dia/membro
+- **NÃO recebemos refresh token.** Refresh programático é só para parceiro
+  aprovado do Marketing Developer Platform; o produto self-serve "Share on
+  LinkedIn" não devolve `refresh_token` no code exchange. Verificado em
+  10/2026 na doc da LinkedIn e no banco de produção: 100% das contas com
+  `refresh_expires_at` NULL. Consequência: **toda conexão morre em ~60 dias e
+  só o dono do perfil reconecta.** `refresh_expiring_tokens` não tem o que
+  renovar nessas contas — ele apenas marca `needs_reauth`. Não tratar isso
+  como defeito a consertar no código: é limite de plataforma. O que o código
+  pode fazer é avisar antes de morrer e impedir agendamento em conta morta.
 - 401/403 no publish => marcar conta needs_reauth, não fazer retry
 
 ## Convenções de trabalho
